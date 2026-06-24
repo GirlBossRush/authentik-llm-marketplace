@@ -5,7 +5,7 @@ allowed-tools: Bash(node:*)
 
 Resolved authentik documentation base URLs for this environment:
 
-!`node "${CLAUDE_PLUGIN_ROOT}/plugins/admin/commands/environment/print-docs-url.ts"`
+!`node "${CLAUDE_PLUGIN_ROOT}/commands/environment/print-docs-url.ts"`
 
 Relay the URLs above to the user verbatim.
 
