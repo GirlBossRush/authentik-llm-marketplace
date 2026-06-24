@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { loadConfig } from "./config.ts";
+import { loadConfig } from "#config";
 
 test("loadConfig reads and normalizes env", () => {
     const cfg = loadConfig({

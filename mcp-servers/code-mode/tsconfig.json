@@ -7,6 +7,5 @@
         "declarationMap": false,
         "allowImportingTsExtensions": true,
         "types": ["node"]
-    },
-    "include": ["src/**/*.ts"]
+    }
 }

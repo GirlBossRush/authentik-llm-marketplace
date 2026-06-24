@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { SERVER_NAME, SERVER_VERSION } from "./version.ts";
+import { SERVER_NAME, SERVER_VERSION } from "#version";
 
 test("server identity constants", () => {
     assert.equal(SERVER_NAME, "authentik-code-mode");

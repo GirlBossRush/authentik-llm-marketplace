@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createServer, type RequestListener } from "node:http";
 import type { AddressInfo } from "node:net";
 
-import { createAk } from "./client.ts";
+import { createAk } from "#client";
 
 /** Spin up a throwaway HTTP server and run `fn` against its base URL. */
 async function withMock<T>(

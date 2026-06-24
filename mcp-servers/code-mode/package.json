@@ -3,11 +3,17 @@
     "version": "0.1.0",
     "private": true,
     "type": "module",
+    "scripts": {
+        "test": "node --test"
+    },
     "bin": {
-        "authentik-code-mode": "./src/index.ts"
+        "authentik-code-mode": "./lib/index.ts"
     },
     "exports": {
-        ".": "./src/index.ts"
+        ".": "./lib/index.ts"
+    },
+    "imports": {
+        "#*": "./lib/*.ts"
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.18.0",

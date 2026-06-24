@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import { parse } from "yaml";
 import type { OpenAPIV3 } from "openapi-types";
 
-import { derefSchema, searchOperations } from "./schema.ts";
+import { derefSchema, searchOperations } from "#schema";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(

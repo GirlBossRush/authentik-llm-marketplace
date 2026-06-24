@@ -8,8 +8,8 @@ import type { AddressInfo } from "node:net";
 import { parse } from "yaml";
 import type { OpenAPIV3 } from "openapi-types";
 
-import { derefSchema } from "./schema.ts";
-import { createTools } from "./tools.ts";
+import { derefSchema } from "#schema";
+import { createTools } from "#tools";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(
@@ -24,7 +24,9 @@ test("PIVOT: discover + create a captcha stage in one confirmed write block", as
         res.setHeader("content-type", "application/json");
         res.end(JSON.stringify({ pk: "stage-1", name: "captcha" }));
     });
+
     await new Promise<void>((r) => inst.listen(0, () => r()));
+
     try {
         const { port } = inst.address() as AddressInfo;
         const tools = createTools({
@@ -43,7 +45,9 @@ test("PIVOT: discover + create a captcha stage in one confirmed write block", as
       const stage = (await ak.request("POST", "/stages/captcha/", { body: { name: "captcha" } })).data;
       return stage.pk;
     `;
+
         const first = await tools.executeWrite({ code });
+
         assert.ok("status" in first);
         assert.equal(first.status, "needs_confirmation");
 

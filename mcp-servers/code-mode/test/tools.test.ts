@@ -8,8 +8,8 @@ import type { AddressInfo } from "node:net";
 import { parse } from "yaml";
 import type { OpenAPIV3 } from "openapi-types";
 
-import { derefSchema } from "./schema.ts";
-import { createTools } from "./tools.ts";
+import { derefSchema } from "#schema";
+import { createTools } from "#tools";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const ENTRY = resolve(__dirname, "index.ts");
+const ENTRY = resolve(__dirname, "..", "lib", "index.ts");
 
 test("server starts, serves schema, and responds to tools/list over stdio", async () => {
     // Mock instance serving a minimal schema.
@@ -18,6 +18,7 @@ test("server starts, serves schema, and responds to tools/list over stdio", asyn
         );
     });
     await new Promise<void>((r) => inst.listen(0, () => r()));
+
     const { port } = inst.address() as AddressInfo;
     const baseUrl = `http://127.0.0.1:${port}`;
 
@@ -25,11 +26,14 @@ test("server starts, serves schema, and responds to tools/list over stdio", asyn
         env: { ...process.env, AUTHENTIK_URL: baseUrl, AUTHENTIK_TOKEN: "t" },
         stdio: ["pipe", "pipe", "pipe"],
     });
+
     try {
         let out = "";
         child.stdout?.on("data", (d) => (out += String(d)));
+
         const send = (msg: object) =>
             child.stdin?.write(JSON.stringify(msg) + "\n");
+
         send({
             jsonrpc: "2.0",
             id: 1,
@@ -40,8 +44,11 @@ test("server starts, serves schema, and responds to tools/list over stdio", asyn
                 clientInfo: { name: "t", version: "0" },
             },
         });
+
         send({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+
         await new Promise((r) => setTimeout(r, 1500));
+
         assert.match(out, /"search"/);
         assert.match(out, /"execute_write"/);
     } finally {

@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import type { Ak } from "./client.ts";
-import { runInSandbox } from "./sandbox.ts";
+import type { Ak } from "#client";
+import { runInSandbox } from "#sandbox";
 
 const fakeAk: Ak = {
     request: async (m, p) => ({ status: 200, data: { m, p } }),
