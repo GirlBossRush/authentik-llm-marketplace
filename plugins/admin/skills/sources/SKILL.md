@@ -32,3 +32,14 @@ authentication flow. This skill owns that setup.
 Not this skill: authentik as the IdP for downstream apps (providers),
 or how the source's button appears mid-login (flows-stages owns the
 flow binding, this skill owns the source itself).
+
+## Working against authentik
+
+authentik changes between releases — prefer live sources over memory:
+
+- **Docs:** start at <https://docs.goauthentik.io/llms.txt> (integrations live at
+  <https://integrations.goauthentik.io/llms.txt>), follow the index to the right
+  page, and fetch its `.md`.
+- **The instance:** use the `authentik-code-mode` MCP — `search` for the API
+  operation, then `execute` to read or `execute_write` (confirmed) to change.
+  Learn the concept from the docs first.

@@ -30,3 +30,14 @@ read-only audit log skill by focusing on operational failure.
 Not this skill: routine reading of the audit log (events-monitoring) or
 lifecycle tasks like upgrades and admin recovery (operations), though a
 diagnosis often ends by pointing at one of those.
+
+## Working against authentik
+
+authentik changes between releases — prefer live sources over memory:
+
+- **Docs:** start at <https://docs.goauthentik.io/llms.txt> (integrations live at
+  <https://integrations.goauthentik.io/llms.txt>), follow the index to the right
+  page, and fetch its `.md`.
+- **The instance:** use the `authentik-code-mode` MCP — `search` for the API
+  operation, then `execute` to read or `execute_write` (confirmed) to change.
+  Learn the concept from the docs first.
