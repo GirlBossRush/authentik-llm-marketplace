@@ -11,9 +11,11 @@
  * @returns {AKConfig}
  */
 export function loadConfig(env) {
-    const url = env.AUTHENTIK_URL?.trim();
-    const token = env.AUTHENTIK_TOKEN?.trim();
-    if (!url) throw new Error("AUTHENTIK_URL is required (e.g. https://id.example.com)");
-    if (!token) throw new Error("AUTHENTIK_TOKEN is required (an authentik API token)");
-    return { baseUrl: url.replace(/\/+$/, ""), token };
+  const url = env.AUTHENTIK_URL?.trim();
+  const token = env.AUTHENTIK_TOKEN?.trim();
+  if (!url)
+    throw new Error("AUTHENTIK_URL is required (e.g. https://id.example.com)");
+  if (!token)
+    throw new Error("AUTHENTIK_TOKEN is required (an authentik API token)");
+  return { baseUrl: url.replace(/\/+$/, ""), token };
 }

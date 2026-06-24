@@ -16,20 +16,27 @@ import vm from "node:vm";
  * @returns {Promise<{ result: unknown, logs: string[] }>}
  */
 export async function runInSandbox(code, ak, { timeoutMs = 30000 }) {
-    /** @type {string[]} */
-    const logs = [];
-    /** @param {...unknown} args */
-    const record = (...args) =>
-        logs.push(args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "));
-    const sandbox = {
-        ak,
-        console: { log: record, error: record, warn: record, info: record },
-    };
-    const context = vm.createContext(sandbox);
-    const wrapped = `(async () => {\n${code}\n})()`;
-    const script = new vm.Script(wrapped, { filename: "agent-code.mjs" });
-    const promise = script.runInContext(context, { timeout: timeoutMs });
-    const result = await promise;
-    // Force a plain serializable value (and surface non-serializable results early).
-    return { result: result === undefined ? null : JSON.parse(JSON.stringify(result)), logs };
+  /** @type {string[]} */
+  const logs = [];
+  /** @param {...unknown} args */
+  const record = (...args) =>
+    logs.push(
+      args
+        .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
+        .join(" "),
+    );
+  const sandbox = {
+    ak,
+    console: { log: record, error: record, warn: record, info: record },
+  };
+  const context = vm.createContext(sandbox);
+  const wrapped = `(async () => {\n${code}\n})()`;
+  const script = new vm.Script(wrapped, { filename: "agent-code.mjs" });
+  const promise = script.runInContext(context, { timeout: timeoutMs });
+  const result = await promise;
+  // Force a plain serializable value (and surface non-serializable results early).
+  return {
+    result: result === undefined ? null : JSON.parse(JSON.stringify(result)),
+    logs,
+  };
 }

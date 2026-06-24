@@ -11,14 +11,17 @@ import { derefSchema } from "./schema.mjs";
  * @returns {Promise<any>} deref'd OpenAPI document
  */
 export async function fetchSchema(config) {
-    const url = `${config.baseUrl}/api/v3/schema/`;
-    const res = await fetch(url, {
-        headers: { authorization: `Bearer ${config.token}`, accept: "application/json" },
-    });
-    if (!res.ok) {
-        throw new Error(`failed to fetch schema from ${url}: HTTP ${res.status}`);
-    }
-    const text = await res.text();
-    // The endpoint serves JSON by default; parse() handles both JSON and YAML.
-    return derefSchema(parse(text));
+  const url = `${config.baseUrl}/api/v3/schema/`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${config.token}`,
+      accept: "application/json",
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`failed to fetch schema from ${url}: HTTP ${res.status}`);
+  }
+  const text = await res.text();
+  // The endpoint serves JSON by default; parse() handles both JSON and YAML.
+  return derefSchema(parse(text));
 }

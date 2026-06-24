@@ -1,3 +1,15 @@
 {
-  "hooks": {}
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"${CLAUDE_PLUGIN_ROOT}/mcp-servers/code-mode\" && npm install --omit=dev --no-audit --no-fund"
+          }
+        ]
+      }
+    ]
+  }
 }

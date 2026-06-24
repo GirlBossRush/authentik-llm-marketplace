@@ -1,3 +1,12 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "authentik-code-mode": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-servers/code-mode/src/index.mjs"],
+      "env": {
+        "AUTHENTIK_URL": "${AUTHENTIK_URL}",
+        "AUTHENTIK_TOKEN": "${AUTHENTIK_TOKEN}"
+      }
+    }
+  }
 }

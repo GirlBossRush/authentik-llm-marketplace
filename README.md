@@ -97,8 +97,9 @@ Skills are contextual and auto-loaded based on your conversation. When a request
 
 Some skills are backed by an MCP server in [`mcp-servers/`](mcp-servers/). These ship Node code and need their dependencies installed before use.
 
-| Server | Backs skill | Tool |
-| ------ | ----------- | ---- |
+| Server                                | Backs skill               | Tool                                 |
+| ------------------------------------- | ------------------------- | ------------------------------------ |
+| [`code-mode`](mcp-servers/code-mode/) | `ak-admin` (instance ops) | `search`, `execute`, `execute_write` |
 
 The repo's [`.mcp.json`](.mcp.json) registers them for plugin installs via `${CLAUDE_PLUGIN_ROOT}`. Dependencies (`node_modules`) are gitignored and resolved automatically:
 

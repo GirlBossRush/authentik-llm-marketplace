@@ -1,14 +1,14 @@
 {
-    "extends": "@goauthentik/tsconfig",
-    "compilerOptions": {
-        "checkJs": true,
-        "allowJs": true,
-        "noEmit": true,
-        "composite": false,
-        "declaration": false,
-        "declarationMap": false,
-        "types": ["node"]
-    },
-    "include": ["src/**/*.mjs"],
-    "exclude": ["src/**/*.test.mjs"]
+  "extends": "@goauthentik/tsconfig",
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.mjs"],
+  "exclude": ["src/**/*.test.mjs"]
 }
