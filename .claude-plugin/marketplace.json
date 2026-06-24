@@ -13,13 +13,13 @@
   "plugins": [
     {
       "name": "ak-admin",
-      "source": "./admin",
+      "source": "./plugins/admin",
       "description": "Skills for administering authentik instances",
       "category": "security"
     },
     {
       "name": "ak-dev",
-      "source": "./developer",
+      "source": "./plugins/developer",
       "description": "Skills for developers contributing to authentik's source code",
       "category": "development"
     }
