@@ -1,6 +1,6 @@
 {
     "name": "@goauthentik/agent-marketplace",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Marketplace for agentic tooling",
     "homepage": "https://github.com/goauthentik/agent-marketplace#readme",
     "bugs": {

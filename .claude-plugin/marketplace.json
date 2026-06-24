@@ -2,7 +2,7 @@
     "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
     "name": "authentik-marketplace",
     "description": "Agent skills for using and contributing to authentik",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "owner": {
         "name": "Authentik Security Inc.",
         "url": "https://goauthentik.io"
