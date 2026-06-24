@@ -1,21 +1,23 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const ENTRY = resolve(__dirname, "index.mjs");
+const ENTRY = resolve(__dirname, "index.ts");
 
 test("server starts, serves schema, and responds to tools/list over stdio", async () => {
   // Mock instance serving a minimal schema.
-  const inst = createServer((req, res) => {
+  const inst = createServer((_req, res) => {
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ openapi: "3.0.3", paths: {}, components: {} }));
   });
-  await new Promise((r) => inst.listen(0, r));
-  const baseUrl = `http://127.0.0.1:${inst.address().port}`;
+  await new Promise<void>((r) => inst.listen(0, () => r()));
+  const { port } = inst.address() as AddressInfo;
+  const baseUrl = `http://127.0.0.1:${port}`;
 
   const child = spawn("node", [ENTRY], {
     env: { ...process.env, AUTHENTIK_URL: baseUrl, AUTHENTIK_TOKEN: "t" },
@@ -23,8 +25,9 @@ test("server starts, serves schema, and responds to tools/list over stdio", asyn
   });
   try {
     let out = "";
-    child.stdout.on("data", (d) => (out += d));
-    const send = (msg) => child.stdin.write(JSON.stringify(msg) + "\n");
+    child.stdout?.on("data", (d) => (out += String(d)));
+    const send = (msg: object) =>
+      child.stdin?.write(JSON.stringify(msg) + "\n");
     send({
       jsonrpc: "2.0",
       id: 1,

@@ -1,14 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
+import { createServer, type RequestListener } from "node:http";
+import type { AddressInfo } from "node:net";
 
-import { createAk } from "./client.mjs";
+import { createAk } from "./client.ts";
 
-/** Spin up a throwaway HTTP server capturing the last request. */
-async function withMock(handler, fn) {
+/** Spin up a throwaway HTTP server and run `fn` against its base URL. */
+async function withMock<T>(
+  handler: RequestListener,
+  fn: (baseUrl: string) => Promise<T>,
+): Promise<T> {
   const server = createServer(handler);
-  await new Promise((r) => server.listen(0, r));
-  const { port } = server.address();
+  await new Promise<void>((r) => server.listen(0, () => r()));
+  const { port } = server.address() as AddressInfo;
   try {
     return await fn(`http://127.0.0.1:${port}`);
   } finally {

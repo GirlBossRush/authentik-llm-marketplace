@@ -1,9 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { runInSandbox } from "./sandbox.mjs";
+import type { Ak } from "./client.ts";
+import { runInSandbox } from "./sandbox.ts";
 
-const fakeAk = { request: async (m, p) => ({ status: 200, data: { m, p } }) };
+const fakeAk: Ak = {
+  request: async (m, p) => ({ status: 200, data: { m, p } }),
+};
 
 test("runs code against ak and returns the value", async () => {
   const { result } = await runInSandbox(

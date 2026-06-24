@@ -1,14 +1,12 @@
 {
   "extends": "@goauthentik/tsconfig",
   "compilerOptions": {
-    "checkJs": true,
-    "allowJs": true,
     "noEmit": true,
     "composite": false,
     "declaration": false,
     "declarationMap": false,
+    "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.mjs"],
-  "exclude": ["src/**/*.test.mjs"]
+  "include": ["src/**/*.ts"]
 }

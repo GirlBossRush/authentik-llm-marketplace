@@ -3,22 +3,28 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createServer } from "node:http";
+import { createServer, type RequestListener } from "node:http";
+import type { AddressInfo } from "node:net";
 import { parse } from "yaml";
+import type { OpenAPIV3 } from "openapi-types";
 
-import { derefSchema } from "./schema.mjs";
-import { createTools } from "./tools.mjs";
+import { derefSchema } from "./schema.ts";
+import { createTools } from "./tools.ts";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(
   parse(readFileSync(resolve(__dirname, "__fixtures__/schema.yml"), "utf-8")),
-);
+) as OpenAPIV3.Document;
 
-async function withMock(handler, fn) {
+async function withMock<T>(
+  handler: RequestListener,
+  fn: (baseUrl: string) => Promise<T>,
+): Promise<T> {
   const server = createServer(handler);
-  await new Promise((r) => server.listen(0, r));
+  await new Promise<void>((r) => server.listen(0, () => r()));
+  const { port } = server.address() as AddressInfo;
   try {
-    return await fn(`http://127.0.0.1:${server.address().port}`);
+    return await fn(`http://127.0.0.1:${port}`);
   } finally {
     server.close();
   }
@@ -35,7 +41,7 @@ test("search returns matching operations", () => {
 
 test("execute runs read-only code", async () => {
   await withMock(
-    (req, res) => res.end(JSON.stringify([{ username: "alice" }])),
+    (_req, res) => res.end(JSON.stringify([{ username: "alice" }])),
     async (baseUrl) => {
       const tools = createTools({
         spec: SPEC,
@@ -65,7 +71,7 @@ test("execute blocks writes (read-only binding)", async () => {
 
 test("execute_write requires a matching confirm token, then runs", async () => {
   await withMock(
-    (req, res) => {
+    (_req, res) => {
       res.statusCode = 201;
       res.end(JSON.stringify({ pk: 7 }));
     },
@@ -76,9 +82,11 @@ test("execute_write requires a matching confirm token, then runs", async () => {
       });
       const code = `return (await ak.request("POST","/stages/captcha/",{body:{name:"c"}})).data;`;
       const first = await tools.executeWrite({ code });
+      assert.ok("status" in first);
       assert.equal(first.status, "needs_confirmation");
       assert.equal(first.token, tools.confirmTokenFor(code));
       const second = await tools.executeWrite({ code, confirm: first.token });
+      assert.ok("result" in second);
       assert.deepEqual(second.result, { pk: 7 });
     },
   );
@@ -91,5 +99,6 @@ test("execute_write rejects a wrong confirm token without running", async () => 
   });
   const code = `return await ak.request("POST","/stages/captcha/",{body:{}});`;
   const out = await tools.executeWrite({ code, confirm: "wrongtok" });
+  assert.ok("status" in out);
   assert.equal(out.status, "needs_confirmation");
 });
