@@ -6,8 +6,8 @@ import { resolve } from "node:path";
 import { createServer } from "node:http";
 import { parse } from "yaml";
 
-import { derefSchema } from "./schema.mjs";
-import { createTools } from "./tools.mjs";
+import { derefSchema } from "./schema.ts";
+import { createTools } from "./tools.ts";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(

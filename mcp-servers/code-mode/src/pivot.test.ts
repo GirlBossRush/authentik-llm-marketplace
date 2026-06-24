@@ -6,8 +6,8 @@ import { resolve } from "node:path";
 import { createServer } from "node:http";
 import { parse } from "yaml";
 
-import { derefSchema } from "./schema.mjs";
-import { createTools } from "./tools.mjs";
+import { derefSchema } from "./schema.ts";
+import { createTools } from "./tools.ts";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(
@@ -40,9 +40,9 @@ test("PIVOT: discover + create a captcha stage in one confirmed write block", as
 
     // 2. The agent writes one block; first call returns a confirm token.
     const code = `
-            const stage = (await ak.request("POST", "/stages/captcha/", { body: { name: "captcha" } })).data;
-            return stage.pk;
-        `;
+      const stage = (await ak.request("POST", "/stages/captcha/", { body: { name: "captcha" } })).data;
+      return stage.pk;
+    `;
     const first = await tools.executeWrite({ code });
     assert.equal(first.status, "needs_confirmation");
 

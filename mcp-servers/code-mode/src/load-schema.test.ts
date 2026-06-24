@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 
-import { fetchSchema } from "./load-schema.mjs";
+import { fetchSchema } from "./load-schema.ts";
 
 test("fetchSchema GETs /api/v3/schema/ and returns a deref'd spec", async () => {
   const server = createServer((req, res) => {

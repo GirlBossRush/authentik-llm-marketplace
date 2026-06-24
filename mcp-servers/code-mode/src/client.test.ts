@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 
-import { createAk } from "./client.mjs";
+import { createAk } from "./client.ts";
 
 /** Spin up a throwaway HTTP server capturing the last request. */
 async function withMock(handler, fn) {

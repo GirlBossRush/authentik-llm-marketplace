@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const ENTRY = resolve(__dirname, "index.mjs");
+const ENTRY = resolve(__dirname, "index.ts");
 
 test("server starts, serves schema, and responds to tools/list over stdio", async () => {
   // Mock instance serving a minimal schema.

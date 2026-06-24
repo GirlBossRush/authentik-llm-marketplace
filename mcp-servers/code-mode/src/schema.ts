@@ -8,15 +8,21 @@ const HTTP_METHODS = [
   "patch",
   "head",
   "options",
-];
+] as const;
 
-/**
- * Resolve a single `#/a/b/c` JSON pointer against the root document.
- * @param {any} root
- * @param {string} ref
- * @returns {any}
- */
-function resolvePointer(root, ref) {
+export interface OperationHit {
+  method: string;
+  path: string;
+  operationId?: string;
+  summary?: string;
+  tags: string[];
+  parameters: unknown[];
+  requestBody?: unknown;
+  responses?: unknown;
+}
+
+/** Resolve a single `#/a/b/c` JSON pointer against the root document. */
+function resolvePointer(root: any, ref: string): any {
   const parts = ref.replace(/^#\//, "").split("/");
   let node = root;
   for (const part of parts) {
@@ -29,13 +35,10 @@ function resolvePointer(root, ref) {
 /**
  * Return the spec with internal `$ref`s inlined. Cycle-safe: a ref already on
  * the current resolution stack is left as `{ $ref }` to break the loop.
- * @param {any} spec
- * @returns {any}
  */
-export function derefSchema(spec) {
-  const seen = new Set();
-  /** @param {any} node @returns {any} */
-  const walk = (node) => {
+export function derefSchema(spec: any): any {
+  const seen = new Set<string>();
+  const walk = (node: any): any => {
     if (node === null || typeof node !== "object") return node;
     if (Array.isArray(node)) return node.map(walk);
     if (typeof node.$ref === "string") {
@@ -45,28 +48,24 @@ export function derefSchema(spec) {
       seen.delete(node.$ref);
       return resolved ?? node;
     }
-    /** @type {Record<string, any>} */
-    const out = {};
+    const out: Record<string, any> = {};
     for (const [k, v] of Object.entries(node)) out[k] = walk(v);
     return out;
   };
   return walk(spec);
 }
 
-/**
- * Search operations by free-text query over path + operationId + summary + tags.
- * @param {any} spec A deref'd OpenAPI document.
- * @param {string} query
- * @param {number} [limit]
- * @returns {Array<object>}
- */
-export function searchOperations(spec, query, limit = 20) {
+/** Search operations by free-text query over path + operationId + summary + tags. */
+export function searchOperations(
+  spec: any,
+  query: string,
+  limit = 20,
+): OperationHit[] {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-  /** @type {Array<{ score: number, op: object }>} */
-  const scored = [];
-  for (const [path, item] of Object.entries(spec.paths ?? {})) {
+  const scored: { score: number; op: OperationHit }[] = [];
+  for (const [path, item] of Object.entries<any>(spec.paths ?? {})) {
     for (const method of HTTP_METHODS) {
-      const op = /** @type {any} */ (item)[method];
+      const op = item[method];
       if (!op) continue;
       const haystack = [
         path,

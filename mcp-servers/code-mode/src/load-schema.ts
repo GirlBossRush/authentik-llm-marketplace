@@ -2,15 +2,11 @@
 
 import { parse } from "yaml";
 
-import { derefSchema } from "./schema.mjs";
+import type { AKConfig } from "./config.ts";
+import { derefSchema } from "./schema.ts";
 
-/** @import { AKConfig } from "./config.mjs" */
-
-/**
- * @param {AKConfig} config
- * @returns {Promise<any>} deref'd OpenAPI document
- */
-export async function fetchSchema(config) {
+/** Fetch and dereference the running instance's OpenAPI document. */
+export async function fetchSchema(config: AKConfig): Promise<any> {
   const url = `${config.baseUrl}/api/v3/schema/`;
   const res = await fetch(url, {
     headers: {

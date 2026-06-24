@@ -5,32 +5,32 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-import { SERVER_NAME, SERVER_VERSION } from "./version.mjs";
-import { loadConfig } from "./config.mjs";
-import { fetchSchema } from "./load-schema.mjs";
-import { createTools } from "./tools.mjs";
+import { loadConfig } from "./config.ts";
+import { fetchSchema } from "./load-schema.ts";
+import { createTools } from "./tools.ts";
+import { SERVER_NAME, SERVER_VERSION } from "./version.ts";
 
-/**
- * Wrap a tool result object as MCP text content.
- * @param {unknown} value
- */
-const asContent = (value) => ({
-  content: [{ type: "text", text: JSON.stringify(value, null, 2) }],
+/** Wrap a tool result object as MCP text content. */
+const asContent = (value: unknown) => ({
+  content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }],
 });
 
-async function main() {
+async function main(): Promise<void> {
   const config = loadConfig(process.env);
   const spec = await fetchSchema(config);
   const tools = createTools({ spec, config });
 
   const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
 
-  // The SDK's `tool()` generic inference over zod raw shapes trips TS2589
-  // ("excessively deep") under checkJs; bind through `any` to sidestep it.
-  const tool =
-    /** @type {(name: string, description: string, schema: Record<string, unknown>, cb: (args: any) => unknown) => void} */ (
-      server.tool.bind(server)
-    );
+  // The SDK's tool() generic inference over zod raw shapes trips TS2589
+  // ("excessively deep") under strict checking; bind through a loose signature
+  // to sidestep the excessively-deep instantiation.
+  const tool = server.tool.bind(server) as (
+    name: string,
+    description: string,
+    schema: Record<string, unknown>,
+    cb: (args: any) => unknown,
+  ) => void;
 
   tool(
     "search",

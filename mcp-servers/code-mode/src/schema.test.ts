@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { parse } from "yaml";
 
-import { derefSchema, searchOperations } from "./schema.mjs";
+import { derefSchema, searchOperations } from "./schema.ts";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const SPEC = derefSchema(
