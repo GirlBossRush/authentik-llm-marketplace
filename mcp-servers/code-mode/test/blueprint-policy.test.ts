@@ -35,6 +35,23 @@ test("oauth2 provider forces safe token-trust attrs and flags redirect_uris", ()
     assert.equal(a.issuer_mode?.value, "per_provider");
 });
 
+test("relationship fields are binned as `ref` (FIX B)", () => {
+    const app = MODEL_ATTRS["authentik_core.application"];
+    assert.equal(app?.provider?.bin, "ref");
+
+    const oauth = MODEL_ATTRS["authentik_providers_oauth2.oauth2provider"];
+    assert.equal(oauth?.authorization_flow?.bin, "ref");
+    assert.equal(oauth?.invalidation_flow?.bin, "ref");
+    assert.equal(oauth?.signing_key?.bin, "ref");
+    assert.equal(oauth?.property_mappings?.bin, "ref");
+
+    const saml = MODEL_ATTRS["authentik_providers_saml.samlprovider"];
+    assert.equal(saml?.authorization_flow?.bin, "ref");
+    assert.equal(saml?.invalidation_flow?.bin, "ref");
+    assert.equal(saml?.signing_kp?.bin, "ref");
+    assert.equal(saml?.property_mappings?.bin, "ref");
+});
+
 test("isDestructiveEntry: deletes and crypto are destructive, plain creates are not", () => {
     assert.equal(isDestructiveEntry("authentik_sources_oauth.oauthsource", "absent"), true);
     assert.equal(isDestructiveEntry("authentik_crypto.certificatekeypair", undefined), true);

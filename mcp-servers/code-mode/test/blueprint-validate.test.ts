@@ -341,3 +341,145 @@ entries:
       access_token_validity: "fortnights=10;hours=1"`);
     assert.equal(r.ok, false);
 });
+
+// ---------------------------------------------------------------------------
+// FIX A (round 2, Critical) — tags inside a !Find's own children are
+// default-denied. The understood !Find must contain ONLY plain untagged scalars
+// in the model / field / value positions (common.py Find._get_instance
+// .resolve()s any YAMLTag in the model name and in BOTH halves of every cond).
+// ---------------------------------------------------------------------------
+
+test("FIX A: rejects a tag in the !Find MODEL position (!Context model)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [!Context m, [managed, goauthentik.io/providers/oauth2/scope-openid]]`);
+    assert.equal(r.ok, false);
+    assert.match(r.violations.join(" "), /model|untagged|Context/i);
+});
+
+test("FIX A: rejects a tag in a !Find condition FIELD position (!File field)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [!File /etc/passwd, goauthentik.io/providers/oauth2/scope-openid]]`);
+    assert.equal(r.ok, false);
+    assert.match(r.violations.join(" "), /field|untagged|File/i);
+});
+
+test("FIX A: rejects a tag in a !Find condition VALUE position (!Context value)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, !Context x]]`);
+    assert.equal(r.ok, false);
+    assert.match(r.violations.join(" "), /value|untagged|Context/i);
+});
+
+// ---------------------------------------------------------------------------
+// FIX B (round 2, Important) — `ref` bin: relationship fields REQUIRE a
+// permitted reference (curated !Find or in-blueprint !KeyOf). The happy path
+// must validate; non-curated refs and plain literals must reject.
+// ---------------------------------------------------------------------------
+
+test("FIX B: application.provider as a !KeyOf to an in-blueprint provider is permitted", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - id: my-provider
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: prov
+  - model: authentik_core.application
+    attrs:
+      name: x
+      slug: x
+      provider: !KeyOf my-provider`);
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.violations, []);
+});
+
+test("FIX B: oauth2 authorization_flow as a curated !Find is permitted", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]`);
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.violations, []);
+});
+
+test("FIX B: oauth2 signing_key as a curated default-key !Find is permitted", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]`);
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.violations, []);
+});
+
+test("FIX B: oauth2 authorization_flow to a NON-curated flow is rejected", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      authorization_flow: !Find [authentik_flows.flow, [slug, some-other-flow]]`);
+    assert.equal(r.ok, false);
+    assert.match(r.violations.join(" "), /not permitted|curated/i);
+});
+
+test("FIX B: oauth2 signing_key as a plain string is rejected (ref required)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      signing_key: some-key-name`);
+    assert.equal(r.ok, false);
+    assert.match(r.violations.join(" "), /signing_key/);
+});
+
+// End-to-end happy path: a full app-onboarding blueprint validates.
+test("FIX B: end-to-end onboarding (Application + OAuth2Provider) validates", () => {
+    const r = validateBlueprint(`version: 1
+metadata: {name: onboard grafana}
+entries:
+  - id: grafana-provider
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: grafana
+      client_type: confidential
+      redirect_uris: ["https://grafana.company/oauth/callback"]
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+      sub_mode: hashed_user_id
+      issuer_mode: per_provider
+      include_claims_in_id_token: false
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-email]]
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-profile]]
+  - model: authentik_core.application
+    attrs:
+      name: Grafana
+      slug: grafana
+      meta_launch_url: https://grafana.company
+      provider: !KeyOf grafana-provider`);
+    assert.equal(r.ok, true, r.violations.join("; "));
+    assert.deepEqual(r.violations, []);
+    // The flagged redirect_uri is surfaced as a flag, not a violation.
+    assert.ok(r.flags.some((f) => f.attr === "redirect_uris"));
+});
