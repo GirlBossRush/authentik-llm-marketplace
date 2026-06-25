@@ -307,6 +307,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
         ) {
             violations.push(`entry ${i}: denied model "${model}"`);
         }
+
         const attrs = (entry?.attrs ?? {}) as Record<string, unknown>;
         for (const key of Object.keys(attrs)) {
             if (SECRET_FIELDS.has(key)) {

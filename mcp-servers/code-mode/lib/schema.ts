@@ -53,6 +53,7 @@ export function derefSchema(spec: unknown): unknown {
             seen.delete(obj.$ref);
             return resolved ?? node;
         }
+
         const out: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(obj)) out[k] = walk(v);
         return out;

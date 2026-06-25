@@ -160,6 +160,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
             );
             return;
         }
+
         const items = n.items;
         if (items.length < 2) {
             violations.push(
@@ -167,6 +168,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
             );
             return;
         }
+
         const modelNode = items[0];
         // Default-deny: the understood `!Find` resolves at apply time
         // (common.py `Find._get_instance` `.resolve()`s any YAMLTag in the
@@ -266,6 +268,7 @@ function checkRef(
         if (definedIDs.has(targetValue)) {
             return null;
         }
+
         return `!KeyOf "${targetValue}" does not reference an entry defined in this blueprint`;
     }
 
@@ -309,6 +312,7 @@ function attrValueNode(
 ): Node | null {
     if (contents == null || !isMap(contents)) return null;
     let entriesNode: Node | null = null;
+
     for (const pair of contents.items) {
         if (
             isPair(pair) &&
@@ -319,6 +323,7 @@ function attrValueNode(
             break;
         }
     }
+
     if (entriesNode == null || !isSeq(entriesNode)) return null;
     const entryNode = entriesNode.items[entryIndex];
     if (entryNode == null || !isMap(entryNode as Node)) return null;
@@ -329,6 +334,7 @@ function attrValueNode(
             break;
         }
     }
+
     if (attrsNode == null || !isMap(attrsNode)) return null;
     for (const pair of attrsNode.items) {
         if (isPair(pair) && isScalar(pair.key) && pair.key.value === attrKey) {
@@ -354,6 +360,7 @@ function checkRefAttr(node: Node | null): string | null {
     if (node == null) {
         return "must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
     }
+
     const tag = typeof node.tag === "string" ? node.tag : "";
     // A tagged node is a SINGLE reference (note: a `!Find` node is structurally
     // a YAMLSeq that carries the `!Find` tag — its tag must be inspected before
@@ -362,6 +369,7 @@ function checkRefAttr(node: Node | null): string | null {
         if (!REF_PERMITTED_TAGS.has(tag)) {
             return "must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
         }
+
         return null;
     }
     // An UNtagged sequence is a list of references (e.g. property_mappings):
@@ -379,6 +387,7 @@ function checkRefAttr(node: Node | null): string | null {
                 return "every reference in the list must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
             }
         }
+
         return null;
     }
     // Untagged scalar / map → a plain literal, rejected.
@@ -684,6 +693,7 @@ function parseTokenDuration(val: unknown): number | null {
                     return null; // unknown unit → reject
             }
         }
+
         return parsed ? total : null;
     }
     return null;

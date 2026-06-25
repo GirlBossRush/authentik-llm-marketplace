@@ -242,6 +242,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
         if (a.length !== b.length) return false;
         return a.every((item, i) => deepEqual(item, b[i]));
     }
+
     const ao = a as Record<string, unknown>;
     const bo = b as Record<string, unknown>;
     const keys = new Set([...Object.keys(ao), ...Object.keys(bo)]);

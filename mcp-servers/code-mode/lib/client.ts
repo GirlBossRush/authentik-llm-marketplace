@@ -41,16 +41,19 @@ export function createAk(
         if (isSecretRevealPath(path)) {
             throw new Error(`secret-reveal endpoint blocked: ${path}`);
         }
+
         const verb = method.toUpperCase();
         if (!allowWrites && !READ_METHODS.has(verb)) {
             throw new Error(
                 `writes are not supported (this server is read-only) (attempted ${verb} ${path})`,
             );
         }
+
         const url = new URL(`${config.baseURL}/api/v3${path}`);
         for (const [k, v] of Object.entries(opts.query ?? {})) {
             url.searchParams.set(k, String(v));
         }
+
         const res = await fetch(url, {
             method: verb,
             headers: {
@@ -68,6 +71,7 @@ export function createAk(
         } catch {
             data = text;
         }
+
         return { status: res.status, data };
     }
     return { request };

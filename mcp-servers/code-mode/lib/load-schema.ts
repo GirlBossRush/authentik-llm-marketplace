@@ -22,6 +22,7 @@ export async function fetchSchema(
             `failed to fetch schema from ${url}: HTTP ${res.status}`,
         );
     }
+
     const text = await res.text();
     // The endpoint serves JSON by default; parse() handles both JSON and YAML.
     // The instance is the source of truth for its own schema, so we trust the

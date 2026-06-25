@@ -118,6 +118,7 @@ async function findLiveObject(
             query[param] = String(value);
         }
     }
+
     if (mapping.wideFetch) {
         query.page_size = MAX_PAGE_SIZE;
     }
