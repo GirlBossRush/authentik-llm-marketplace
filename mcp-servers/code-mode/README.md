@@ -4,7 +4,8 @@ Exposes authentik's API to an agent as **code**, not as hundreds of tools:
 
 - `search(query)` — find API operations (path/summary/tags) with their schemas.
 - `execute(code)` — run JS with a **read-only** `ak.request(method, path, { query, body })`.
-- `execute_write(code[, confirm])` — run JS with write access; two-step confirm.
+- `validate_blueprint(content)` — validate a proposed Blueprint YAML without applying it.
+- `docs()` — version-aware docs URLs for this instance.
 
 ## Auth
 
