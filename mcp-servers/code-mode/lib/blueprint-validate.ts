@@ -316,10 +316,11 @@ function checkRef(
 /**
  * Locate the YAML AST value node for `entries[i].attrs[key]`, so a `ref`-binned
  * attribute can be checked for a *tag* (the plain JSON projection loses tags:
- * an unresolved !Find / !KeyOf both look like null/string). Returns null if the
- * path can't be resolved (callers treat that as "no node to inspect").
+ * an unresolved !Find / !KeyOf both look like null/string).
  *
  * Pure structural navigation; never throws (every step is guarded).
+ *
+ * @returns null if the path can't be resolved (callers treat that as "no node to inspect").
  */
 function attrValueNode(
     contents: Node | null,
@@ -373,7 +374,9 @@ const REF_PERMITTED_TAGS: ReadonlySet<string> = new Set(["!Find", "!KeyOf"]);
  *
  * The value may be a single tagged node, or a sequence of tagged nodes (e.g.
  * `property_mappings: [!Find …, !Find …]`). An empty sequence is permitted
- * (clearing the relation). Returns a violation string, or null if permitted.
+ * (clearing the relation).
+ *
+ * @returns a violation string, or null if permitted.
  */
 function checkRefAttr(node: Node | null): string | null {
     if (!isNode(node)) {

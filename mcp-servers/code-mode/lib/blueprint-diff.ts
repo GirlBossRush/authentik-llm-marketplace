@@ -180,7 +180,7 @@ function hasMorePages(data: unknown): boolean {
  * client-side, so a non-filtering or over-broad endpoint can never produce a
  * false match.
  *
- * Returns `unconfirmed` rather than guessing whenever existence cannot be
+ *  * @returns `unconfirmed` rather than guessing whenever existence cannot be
  * positively verified: an unmapped model, a non-200 read, or a client-side
  * match over a page that was truncated (more pages exist) with no hit — in
  * which case the object could live on a page we never fetched.
