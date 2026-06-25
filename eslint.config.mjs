@@ -38,6 +38,9 @@ const eslintConfig = defineConfig(
             "no-param-reassign": "off",
             "@stylistic/operator-linebreak": "off",
             "@stylistic/quote-props": "off",
+            // Prettier owns quote style (it switches to single quotes to avoid
+            // escaping); keep the stylistic rule from fighting it.
+            "@stylistic/quotes": "off",
             "@stylistic/indent-binary-ops": "off",
             "@stylistic/indent": "off",
             "@stylistic/padding-line-between-statements": [
