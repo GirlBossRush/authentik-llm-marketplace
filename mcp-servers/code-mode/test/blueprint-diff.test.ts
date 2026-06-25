@@ -190,3 +190,96 @@ test("model field is carried through on each DiffObject", async () => {
     const d = await computeDiff(entries as never, ak as never);
     assert.equal(d.objects[0]?.model, "authentik_core.application");
 });
+
+test("a non-200 read cannot confirm existence — flagged unexpected, not silently created", async () => {
+    const failing = {
+        request: async (_m: string, _p: string) => ({
+            status: 500,
+            data: null,
+        }),
+    };
+    const entries = [
+        {
+            model: "authentik_core.application",
+            identifiers: { slug: "grafana" },
+            attrs: { name: "New" },
+        },
+    ];
+    const d = await computeDiff(entries as never, failing as never);
+    assert.equal(d.objects.length, 1);
+    assert.equal(d.objects[0]?.unexpected, true);
+});
+
+test("an unknown/unmapped model cannot be verified — flagged unexpected", async () => {
+    const entries = [
+        {
+            model: "authentik_unknown.mysterymodel",
+            identifiers: { name: "who-knows" },
+            attrs: { name: "who-knows" },
+        },
+    ];
+    const d = await computeDiff(entries as never, ak as never);
+    assert.equal(d.objects.length, 1);
+    assert.equal(d.objects[0]?.unexpected, true);
+});
+
+test("a truncated provider list with no match — flagged unexpected (window may have missed it)", async () => {
+    const truncated = {
+        request: async (_m: string, _p: string) => ({
+            status: 200,
+            data: {
+                results: [{ name: "someone-else" }],
+                pagination: { next: 2 },
+            },
+        }),
+    };
+    const entries = [
+        {
+            model: "authentik_providers_oauth2.oauth2provider",
+            identifiers: { name: "my-oauth" },
+            attrs: { name: "my-oauth" },
+        },
+    ];
+    const d = await computeDiff(entries as never, truncated as never);
+    assert.equal(d.objects.length, 1);
+    assert.equal(d.objects[0]?.unexpected, true);
+});
+
+test("a genuine create (200, full list, no match) stays a plain create with no unexpected flag", async () => {
+    const entries = [
+        {
+            model: "authentik_core.application",
+            identifiers: { slug: "brandnew" },
+            attrs: { name: "Brand New" },
+        },
+    ];
+    const d = await computeDiff(entries as never, ak as never);
+    assert.equal(d.objects[0]?.status, "create");
+    assert.ok(!d.objects[0]?.unexpected);
+});
+
+test("provider reads request the max page size to widen the client-side match window", async () => {
+    let pageSize: string | number | undefined;
+    const live = {
+        request: async (
+            _m: string,
+            _p: string,
+            opts?: { query?: Record<string, string | number> },
+        ) => {
+            pageSize = opts?.query?.page_size;
+            return {
+                status: 200,
+                data: { results: [{ name: "my-oauth" }] },
+            };
+        },
+    };
+    const entries = [
+        {
+            model: "authentik_providers_oauth2.oauth2provider",
+            identifiers: { name: "my-oauth" },
+            attrs: { name: "my-oauth" },
+        },
+    ];
+    await computeDiff(entries as never, live as never);
+    assert.equal(Number(pageSize), 100);
+});
