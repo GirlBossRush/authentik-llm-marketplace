@@ -4,7 +4,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "test": "node --test"
+        "test": "node --test",
+        "typecheck": "tsc --noEmit"
     },
     "bin": {
         "authentik-code-mode": "./lib/index.ts"
