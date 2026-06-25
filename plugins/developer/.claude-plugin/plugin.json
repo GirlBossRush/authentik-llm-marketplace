@@ -2,7 +2,7 @@
     "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
     "name": "ak-dev",
     "description": "Skills for developers contributing to authentik's source code",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": {
         "name": "Authentik Security Inc.",
         "email": "hello@goauthentik.io",
