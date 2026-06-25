@@ -17,9 +17,7 @@ import {
     EXCLUDED_SCOPES,
 } from "#blueprint-policy";
 
-// ---------------------------------------------------------------------------
-// Public interfaces
-// ---------------------------------------------------------------------------
+// #region Public interfaces
 
 export interface FlagItem {
     entryIndex: number;
@@ -34,9 +32,9 @@ export interface BlueprintValidation {
     flags: FlagItem[];
 }
 
-// ---------------------------------------------------------------------------
-// Reference checking helpers
-// ---------------------------------------------------------------------------
+// #endregion
+
+// #region Reference checking helpers
 
 /**
  * Default-deny allow-list of YAML tags this validator understands AND can prove
@@ -394,9 +392,9 @@ function checkRefAttr(node: Node | null): string | null {
     return "must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
 }
 
-// ---------------------------------------------------------------------------
-// Main validator
-// ---------------------------------------------------------------------------
+// #endregion
+
+// #region Main validator
 
 export function validateBlueprint(content: string): BlueprintValidation {
     const violations: string[] = [];
@@ -644,9 +642,9 @@ export function validateBlueprint(content: string): BlueprintValidation {
     return { ok: violations.length === 0, violations, flags };
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// #endregion
+
+// #region Helpers
 
 /**
  * Parse an authentik token validity value, which can be:
@@ -698,3 +696,5 @@ function parseTokenDuration(val: unknown): number | null {
     }
     return null;
 }
+
+// #endregion
