@@ -12,7 +12,13 @@ const DENIED_MODELS = new Set([
 /** Whole app-labels that are off-limits regardless of model. */
 const DENIED_PREFIXES = ["authentik_crypto."];
 /** Attr keys whose presence means the agent is planting a known secret. */
-const SECRET_FIELDS = new Set(["client_secret", "token", "password", "key_data", "signing_key"]);
+const SECRET_FIELDS = new Set([
+    "client_secret",
+    "token",
+    "password",
+    "key_data",
+    "signing_key",
+]);
 
 export interface BlueprintValidation {
     ok: boolean;
@@ -32,7 +38,10 @@ export function validateBlueprint(content: string): BlueprintValidation {
         // parseAllDocuments before v2 (apply) ships.
         doc = parse(content, { logLevel: "silent" });
     } catch (err) {
-        return { ok: false, violations: [`unparseable YAML: ${(err as Error).message}`] };
+        return {
+            ok: false,
+            violations: [`unparseable YAML: ${(err as Error).message}`],
+        };
     }
 
     const entries = (doc as { entries?: unknown })?.entries;
@@ -47,13 +56,18 @@ export function validateBlueprint(content: string): BlueprintValidation {
             violations.push(`entry ${i}: missing model`);
             return;
         }
-        if (DENIED_MODELS.has(model) || DENIED_PREFIXES.some((p) => model.startsWith(p))) {
+        if (
+            DENIED_MODELS.has(model) ||
+            DENIED_PREFIXES.some((p) => model.startsWith(p))
+        ) {
             violations.push(`entry ${i}: denied model "${model}"`);
         }
         const attrs = (entry?.attrs ?? {}) as Record<string, unknown>;
         for (const key of Object.keys(attrs)) {
             if (SECRET_FIELDS.has(key)) {
-                violations.push(`entry ${i}: secret field "${key}" must be omitted (auto-generated)`);
+                violations.push(
+                    `entry ${i}: secret field "${key}" must be omitted (auto-generated)`,
+                );
             }
         }
     });

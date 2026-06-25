@@ -25,11 +25,11 @@ We assume the operator is **inattentive and lazy**: they will click "approve" wi
 
 The decisive axis is **the cost of an agent mistake**: is the instance's state _disposable_ or _must-be-preserved_?
 
-| Persona                                  | State                     | Boundary posture                                                                                                                    |
-| ---------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **P1: first-time admin, clean slate**    | disposable (re-creatable) | wide latitude, but bootstrap must auto-provision a least-privilege identity so the lazy admin never has the easier superuser option |
-| **P2: admin expanding live production**  | must be preserved         | read-mostly; writes are narrow, time-boxed, validated server-side                                                                   |
-| **P3: authentik developer**              | no boundary               | full shell/superuser, explicitly out of scope                                                                                       |
+| Persona                                 | State                     | Boundary posture                                                                                                                    |
+| --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **P1: first-time admin, clean slate**   | disposable (re-creatable) | wide latitude, but bootstrap must auto-provision a least-privilege identity so the lazy admin never has the easier superuser option |
+| **P2: admin expanding live production** | must be preserved         | read-mostly; writes are narrow, time-boxed, validated server-side                                                                   |
+| **P3: authentik developer**             | no boundary               | full shell/superuser, explicitly out of scope                                                                                       |
 
 P1 and P2 are the targets.
 

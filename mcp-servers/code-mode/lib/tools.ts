@@ -2,7 +2,10 @@
 
 import type { OpenAPIV3 } from "openapi-types";
 
-import { validateBlueprint, type BlueprintValidation } from "./blueprint-validate.ts";
+import {
+    validateBlueprint,
+    type BlueprintValidation,
+} from "./blueprint-validate.ts";
 import { createAk } from "./client.ts";
 import type { AKConfig } from "./config.ts";
 import { runInSandbox, type SandboxResult } from "./sandbox.ts";

@@ -25,8 +25,14 @@ entries:
 });
 
 test("rejects token, role, and crypto models", () => {
-    for (const m of ["authentik_core.token", "authentik_rbac.role", "authentik_crypto.certificatekeypair"]) {
-        const r = validateBlueprint(`version: 1\nentries:\n  - model: ${m}\n    attrs: {}`);
+    for (const m of [
+        "authentik_core.token",
+        "authentik_rbac.role",
+        "authentik_crypto.certificatekeypair",
+    ]) {
+        const r = validateBlueprint(
+            `version: 1\nentries:\n  - model: ${m}\n    attrs: {}`,
+        );
         assert.equal(r.ok, false, `${m} should be denied`);
     }
 });
@@ -44,9 +50,15 @@ test("rejects explicit secret fields", () => {
 entries:
   - model: authentik_providers_oauth2.oauth2provider
     attrs: {name: p, client_secret: hunter2}`;
-    assert.match(validateBlueprint(bp).violations.join(" "), /secret field "client_secret"/);
+    assert.match(
+        validateBlueprint(bp).violations.join(" "),
+        /secret field "client_secret"/,
+    );
 });
 
 test("rejects documents with no entries list", () => {
-    assert.equal(validateBlueprint("version: 1\nmetadata: {name: x}").ok, false);
+    assert.equal(
+        validateBlueprint("version: 1\nmetadata: {name: x}").ok,
+        false,
+    );
 });

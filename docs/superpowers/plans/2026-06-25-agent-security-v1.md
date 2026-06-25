@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the authentik code-mode MCP structurally incapable of mutating an instance: it reads through a least-privilege token (no secret-reveal perms), and can only *propose* changes as validated blueprints — never apply them.
+**Goal:** Make the authentik code-mode MCP structurally incapable of mutating an instance: it reads through a least-privilege token (no secret-reveal perms), and can only _propose_ changes as validated blueprints — never apply them.
 
 **Architecture:** Three independent pieces. (1) A bootstrap script the admin runs once to provision a scoped read-only `ak-agent` service account + token. (2) MCP read hardening: default the instance URL, and block secret-reveal endpoints at the client layer as defense-in-depth. (3) Replace the `execute_write` (apply) tool with a `validate_blueprint` tool that parses a proposed blueprint and rejects denied models / `!Env` / secret fields without touching the instance.
 
@@ -25,10 +25,12 @@
 ### Task 1: Default `AUTHENTIK_URL`
 
 **Files:**
+
 - Modify: `mcp-servers/code-mode/lib/config.ts`
 - Test: `mcp-servers/code-mode/test/config.test.ts`
 
 **Interfaces:**
+
 - Produces: `loadConfig(env)` unchanged signature; returns `baseURL` defaulting to `http://localhost:9000` when `AUTHENTIK_URL` is unset/blank. Token still required.
 
 - [ ] **Step 1: Write the failing test** (append to `test/config.test.ts`)
@@ -41,7 +43,10 @@ test("loadConfig defaults AUTHENTIK_URL to localhost:9000 when unset", () => {
 });
 
 test("loadConfig still requires a token", () => {
-    assert.throws(() => loadConfig({ AUTHENTIK_URL: "http://localhost:9000" }), /AUTHENTIK_TOKEN/);
+    assert.throws(
+        () => loadConfig({ AUTHENTIK_URL: "http://localhost:9000" }),
+        /AUTHENTIK_TOKEN/,
+    );
 });
 ```
 
@@ -58,7 +63,8 @@ const DEFAULT_URL = "http://localhost:9000";
 export function loadConfig(env: Record<string, string | undefined>): AKConfig {
     const url = env.AUTHENTIK_URL?.trim() || DEFAULT_URL;
     const token = env.AUTHENTIK_TOKEN?.trim();
-    if (!token) throw new Error("AUTHENTIK_TOKEN is required (an authentik API token)");
+    if (!token)
+        throw new Error("AUTHENTIK_TOKEN is required (an authentik API token)");
     return { baseURL: url.replace(/\/+$/, ""), token };
 }
 ```
@@ -80,10 +86,12 @@ git commit -m "feat(code-mode): default AUTHENTIK_URL to localhost:9000"
 ### Task 2: Block secret-reveal endpoints at the client layer
 
 **Files:**
+
 - Modify: `mcp-servers/code-mode/lib/client.ts`
 - Test: `mcp-servers/code-mode/test/client.test.ts`
 
 **Interfaces:**
+
 - Produces: `isSecretRevealPath(path: string): boolean` (exported). `ak.request` throws before any fetch when the path is a secret-reveal endpoint (`…/view_key/`, `…/view_private_key/`), even for reads — defense in depth behind the scoped token.
 
 - [ ] **Step 1: Write the failing test** (append to `test/client.test.ts`)
@@ -93,13 +101,22 @@ import { createAk, isSecretRevealPath } from "#client";
 
 test("isSecretRevealPath flags token/key reveal endpoints, not normal reads", () => {
     assert.equal(isSecretRevealPath("/core/tokens/abc/view_key/"), true);
-    assert.equal(isSecretRevealPath("/crypto/certificatekeypairs/x/view_private_key/"), true);
+    assert.equal(
+        isSecretRevealPath("/crypto/certificatekeypairs/x/view_private_key/"),
+        true,
+    );
     assert.equal(isSecretRevealPath("/core/applications/"), false);
 });
 
 test("ak.request refuses secret-reveal paths before any network call", async () => {
-    const ak = createAk({ baseURL: "http://127.0.0.1:1", token: "t" }, { allowWrites: false });
-    await assert.rejects(() => ak.request("GET", "/core/tokens/abc/view_key/"), /secret-reveal/);
+    const ak = createAk(
+        { baseURL: "http://127.0.0.1:1", token: "t" },
+        { allowWrites: false },
+    );
+    await assert.rejects(
+        () => ak.request("GET", "/core/tokens/abc/view_key/"),
+        /secret-reveal/,
+    );
 });
 ```
 
@@ -122,9 +139,9 @@ export function isSecretRevealPath(path: string): boolean {
 Then, inside `request`, before the existing `allowWrites` check:
 
 ```ts
-        if (isSecretRevealPath(path)) {
-            throw new Error(`secret-reveal endpoint blocked: ${path}`);
-        }
+if (isSecretRevealPath(path)) {
+    throw new Error(`secret-reveal endpoint blocked: ${path}`);
+}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -144,10 +161,12 @@ git commit -m "feat(code-mode): block secret-reveal endpoints in ak.request (def
 ### Task 3: Blueprint content validator
 
 **Files:**
+
 - Create: `mcp-servers/code-mode/lib/blueprint-validate.ts`
 - Test: `mcp-servers/code-mode/test/blueprint-validate.test.ts`
 
 **Interfaces:**
+
 - Produces: `validateBlueprint(content: string): { ok: boolean; violations: string[] }`. Pure function, no I/O. Rejects denied models, the `!Env` tag, secret attr fields, and unparseable / entry-less documents.
 
 - [ ] **Step 1: Write the failing test** (`test/blueprint-validate.test.ts`)
@@ -180,8 +199,14 @@ entries:
 });
 
 test("rejects token, role, and crypto models", () => {
-    for (const m of ["authentik_core.token", "authentik_rbac.role", "authentik_crypto.certificatekeypair"]) {
-        const r = validateBlueprint(`version: 1\nentries:\n  - model: ${m}\n    attrs: {}`);
+    for (const m of [
+        "authentik_core.token",
+        "authentik_rbac.role",
+        "authentik_crypto.certificatekeypair",
+    ]) {
+        const r = validateBlueprint(
+            `version: 1\nentries:\n  - model: ${m}\n    attrs: {}`,
+        );
         assert.equal(r.ok, false, `${m} should be denied`);
     }
 });
@@ -199,11 +224,17 @@ test("rejects explicit secret fields", () => {
 entries:
   - model: authentik_providers_oauth2.oauth2provider
     attrs: {name: p, client_secret: hunter2}`;
-    assert.match(validateBlueprint(bp).violations.join(" "), /secret field "client_secret"/);
+    assert.match(
+        validateBlueprint(bp).violations.join(" "),
+        /secret field "client_secret"/,
+    );
 });
 
 test("rejects documents with no entries list", () => {
-    assert.equal(validateBlueprint("version: 1\nmetadata: {name: x}").ok, false);
+    assert.equal(
+        validateBlueprint("version: 1\nmetadata: {name: x}").ok,
+        false,
+    );
 });
 ```
 
@@ -229,7 +260,13 @@ const DENIED_MODELS = new Set([
 /** Whole app-labels that are off-limits regardless of model. */
 const DENIED_PREFIXES = ["authentik_crypto."];
 /** Attr keys whose presence means the agent is planting a known secret. */
-const SECRET_FIELDS = new Set(["client_secret", "token", "password", "key_data", "signing_key"]);
+const SECRET_FIELDS = new Set([
+    "client_secret",
+    "token",
+    "password",
+    "key_data",
+    "signing_key",
+]);
 
 export interface BlueprintValidation {
     ok: boolean;
@@ -246,7 +283,10 @@ export function validateBlueprint(content: string): BlueprintValidation {
     try {
         doc = parse(content, { logLevel: "silent" });
     } catch (err) {
-        return { ok: false, violations: [`unparseable YAML: ${(err as Error).message}`] };
+        return {
+            ok: false,
+            violations: [`unparseable YAML: ${(err as Error).message}`],
+        };
     }
 
     const entries = (doc as { entries?: unknown })?.entries;
@@ -261,13 +301,18 @@ export function validateBlueprint(content: string): BlueprintValidation {
             violations.push(`entry ${i}: missing model`);
             return;
         }
-        if (DENIED_MODELS.has(model) || DENIED_PREFIXES.some((p) => model.startsWith(p))) {
+        if (
+            DENIED_MODELS.has(model) ||
+            DENIED_PREFIXES.some((p) => model.startsWith(p))
+        ) {
             violations.push(`entry ${i}: denied model "${model}"`);
         }
         const attrs = (entry?.attrs ?? {}) as Record<string, unknown>;
         for (const key of Object.keys(attrs)) {
             if (SECRET_FIELDS.has(key)) {
-                violations.push(`entry ${i}: secret field "${key}" must be omitted (auto-generated)`);
+                violations.push(
+                    `entry ${i}: secret field "${key}" must be omitted (auto-generated)`,
+                );
             }
         }
     });
@@ -293,11 +338,13 @@ git commit -m "feat(code-mode): blueprint content validator (deny models/!Env/se
 ### Task 4: Swap `execute_write` for `validate_blueprint`
 
 **Files:**
+
 - Modify: `mcp-servers/code-mode/lib/tools.ts`
 - Modify: `mcp-servers/code-mode/lib/index.ts`
 - Test: `mcp-servers/code-mode/test/tools.test.ts`, `mcp-servers/code-mode/test/index.smoke.test.ts`
 
 **Interfaces:**
+
 - Consumes: `validateBlueprint` from Task 3.
 - Produces: `createTools(...)` returns `{ search, execute, validate }` (no `executeWrite`/`confirmTokenFor`). MCP exposes tools `search`, `execute`, `validate_blueprint`, `docs` — and NOT `execute_write`.
 
@@ -305,11 +352,22 @@ git commit -m "feat(code-mode): blueprint content validator (deny models/!Env/se
 
 ```ts
 test("tools expose validate and no longer expose executeWrite", () => {
-    const spec = { openapi: "3.0.3", info: { version: "1" }, paths: {}, components: {} };
-    const tools = createTools({ spec, config: { baseURL: "http://x", token: "t" } });
+    const spec = {
+        openapi: "3.0.3",
+        info: { version: "1" },
+        paths: {},
+        components: {},
+    };
+    const tools = createTools({
+        spec,
+        config: { baseURL: "http://x", token: "t" },
+    });
     assert.equal(typeof tools.validate, "function");
     assert.equal("executeWrite" in tools, false);
-    assert.equal(tools.validate({ content: "version: 1\nentries: []" }).ok, true);
+    assert.equal(
+        tools.validate({ content: "version: 1\nentries: []" }).ok,
+        true,
+    );
 });
 ```
 
@@ -325,20 +383,23 @@ Expected: FAIL — `tools.validate` undefined; smoke still advertises `execute_w
 Remove the `import { createHash } from "node:crypto";` line, the `WriteConfirmation` interface, the `confirmTokenFor` function, and the entire `executeWrite` function. Add the import and the validate tool:
 
 ```ts
-import { validateBlueprint, type BlueprintValidation } from "./blueprint-validate.ts";
+import {
+    validateBlueprint,
+    type BlueprintValidation,
+} from "./blueprint-validate.ts";
 ```
 
 Inside `createTools`, after `execute`:
 
 ```ts
-    const validate = ({ content }: { content: string }): BlueprintValidation =>
-        validateBlueprint(content);
+const validate = ({ content }: { content: string }): BlueprintValidation =>
+    validateBlueprint(content);
 ```
 
 Change the return to:
 
 ```ts
-    return { search, execute, validate };
+return { search, execute, validate };
 ```
 
 - [ ] **Step 4: Implement — `lib/index.ts`**
@@ -346,12 +407,12 @@ Change the return to:
 Delete the entire `tool<{ code: string; confirm?: string }>("execute_write", …)` registration block. Add, after the `execute` registration:
 
 ```ts
-    tool<{ content: string }>(
-        "validate_blueprint",
-        "Validate a proposed authentik Blueprint (YAML) WITHOUT applying it. Returns {ok, violations}. This server is propose-only: it never mutates the instance. Rejects denied models (tokens, users, groups, roles, crypto), the !Env tag, and explicit secret fields. Hand the operator the validated blueprint to apply themselves.",
-        { content: z.string() },
-        async (args) => asContent(tools.validate(args)),
-    );
+tool<{ content: string }>(
+    "validate_blueprint",
+    "Validate a proposed authentik Blueprint (YAML) WITHOUT applying it. Returns {ok, violations}. This server is propose-only: it never mutates the instance. Rejects denied models (tokens, users, groups, roles, crypto), the !Env tag, and explicit secret fields. Hand the operator the validated blueprint to apply themselves.",
+    { content: z.string() },
+    async (args) => asContent(tools.validate(args)),
+);
 ```
 
 - [ ] **Step 5: Run tests to verify they pass**
@@ -371,10 +432,12 @@ git commit -m "feat(code-mode): replace execute_write with propose-only validate
 ### Task 5: Bootstrap script — provision a scoped read-only agent identity
 
 **Files:**
+
 - Create: `mcp-servers/code-mode/scripts/provision-agent-identity.py`
 - Verify against the live dev instance (integration check; no unit test — it runs in authentik's Django shell).
 
 **Interfaces:**
+
 - Produces: a service account `ak-agent`, role `ak-agent-read` (view perms minus `*_key`/`*token`), group `ak-agent-grp`, and a non-expiring API token printed as `AUTHENTIK_READ_TOKEN=<key>`. That key is what the operator sets as the MCP's `AUTHENTIK_TOKEN`.
 
 - [ ] **Step 1: Write the script** (`mcp-servers/code-mode/scripts/provision-agent-identity.py`)
@@ -423,9 +486,11 @@ print("AUTHENTIK_READ_TOKEN=" + t.key)
 - [ ] **Step 2: Run the bootstrap against the live dev instance**
 
 Run (from `/Users/teffen/Projects/authentik`):
+
 ```bash
 uv run ak shell < mcp-servers/.../provision-agent-identity.py 2>/dev/null | tee /tmp/prov.out
 ```
+
 Expected: prints `granted N view perms …` and `AUTHENTIK_READ_TOKEN=…`.
 
 - [ ] **Step 3: Verify least privilege (the real test)**
@@ -439,6 +504,7 @@ echo "own view_key (expect 403): $(curl -s -o /dev/null -w '%{http_code}' "$B/co
 KP=$(curl -s "$B/crypto/certificatekeypairs/?page_size=1" -H "Authorization: Bearer $RT" | python3 -c 'import json,sys;print(json.load(sys.stdin)["results"][0]["pk"])')
 echo "private key (expect 403):  $(curl -s -o /dev/null -w '%{http_code}' "$B/crypto/certificatekeypairs/$KP/view_private_key/" -H "Authorization: Bearer $RT")"
 ```
+
 Expected: `200`, `403`, `403`. If any reveal returns `200`, the allow-list rule is wrong — STOP and fix before committing.
 
 - [ ] **Step 4: Commit**
@@ -453,6 +519,7 @@ git commit -m "feat(code-mode): bootstrap script for a scoped read-only agent id
 ### Task 6: Wire it up — `.mcp.json`, `.env` example, README
 
 **Files:**
+
 - Modify: `.mcp.json` (if it pins env), `mcp-servers/code-mode/README.md` (create if absent), `mcp-servers/code-mode/.env.example` (create)
 
 **Interfaces:** none (docs/config only).
@@ -487,6 +554,7 @@ git commit -m "docs(code-mode): document v1 propose-only security posture"
 ## Self-Review
 
 **Spec coverage** (against `docs/agent-security-model.md` v1 row in §10):
+
 - "scoped read token (allow-list, deny `view_*_key`)" → Task 5 (allow-list rule denies `*_key` and `*token`); verified in Task 5 Step 3.
 - "MCP content-validator (validate-only)" → Tasks 3 + 4.
 - "default `AUTHENTIK_URL`" → Task 1.

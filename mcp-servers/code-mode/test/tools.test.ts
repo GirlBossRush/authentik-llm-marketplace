@@ -70,9 +70,20 @@ test("execute blocks writes (read-only binding)", async () => {
 });
 
 test("tools expose validate and no longer expose executeWrite", () => {
-    const spec = { openapi: "3.0.3", info: { title: "t", version: "1" }, paths: {}, components: {} };
-    const tools = createTools({ spec, config: { baseURL: "http://x", token: "t" } });
+    const spec = {
+        openapi: "3.0.3",
+        info: { title: "t", version: "1" },
+        paths: {},
+        components: {},
+    };
+    const tools = createTools({
+        spec,
+        config: { baseURL: "http://x", token: "t" },
+    });
     assert.equal(typeof tools.validate, "function");
     assert.equal("executeWrite" in tools, false);
-    assert.equal(tools.validate({ content: "version: 1\nentries: []" }).ok, true);
+    assert.equal(
+        tools.validate({ content: "version: 1\nentries: []" }).ok,
+        true,
+    );
 });
