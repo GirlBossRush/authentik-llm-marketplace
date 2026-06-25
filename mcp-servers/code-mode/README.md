@@ -25,8 +25,11 @@ search({ query: "list failed logins events" })
 execute({ code: `return (await ak.request("GET","/events/events/",{query:{action:"login_failed",ordering:"-created",page_size:10}})).data;` })
 ```
 
-## Writes
+## Security (v1)
 
-`execute_write` is two-step: call once with `{ code }` to get a confirm token
-and a preview of the code, then call again with `{ code, confirm }` (the same
-code) to run it with a write-enabled client. `execute` itself is GET-only.
+This server is **propose-only**: it does not hold or expose a write-capable credential. The agent cannot mutate anything in the instance.
+
+- **Tools:** `search` (discovery), `execute` (read-only GET-only API calls), `validate_blueprint` (blueprint content validation only), `docs` (version-aware docs URLs).
+- **Auth:** `AUTHENTIK_TOKEN` must be the scoped read-only token provisioned by `scripts/provision-agent-identity.py` — never a superuser token. If unset, `AUTHENTIK_URL` defaults to `http://localhost:9000`.
+- **Read boundary:** The token's RBAC role denies all `view_*_key` secret-reveal permissions (tokens, certificate keys, etc.), preventing exfiltration of signing keys and API secrets. See `docs/agent-security-model.md` § 5–7 for threat model and design rationale.
+- **Blueprint validation:** `validate_blueprint` is propose-only: the operator must apply validated blueprints themselves via the UI or CLI. The validation enforces content rules (denies models, forbidden tags, plaintext secrets) that prevent escalation and mutation.
