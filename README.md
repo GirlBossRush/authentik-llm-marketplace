@@ -31,7 +31,7 @@ npx skills add https://github.com/goauthentik/agent-marketplace
 ### Clone / Copy
 
 Clone this repo and copy the skill folders from the plugin you want
-(`plugins/ak-admin/skills/` or `plugins/ak-dev/skills/`) into the appropriate
+(`plugins/admin/skills/` or `plugins/developer/skills/`) into the appropriate
 directory for your agent:
 
 | Agent        | Skill Directory              | Docs                                                                               |
@@ -46,8 +46,9 @@ directory for your agent:
 
 Commands are user-invocable slash commands that you explicitly call.
 
-| Command | Description |
-| ------- | ----------- |
+| Command        | Description                                                           |
+| -------------- | --------------------------------------------------------------------- |
+| `/ak-docs-url` | Print the resolved authentik docs + integrations base URLs (ak-admin) |
 
 ## Plugins
 
@@ -97,9 +98,9 @@ Skills are contextual and auto-loaded based on your conversation. When a request
 
 Some skills are backed by an MCP server in [`mcp-servers/`](mcp-servers/). These ship Node code and need their dependencies installed before use.
 
-| Server                                | Backs skill               | Tool                                 |
-| ------------------------------------- | ------------------------- | ------------------------------------ |
-| [`code-mode`](mcp-servers/code-mode/) | `ak-admin` (instance ops) | `search`, `execute`, `execute_write` |
+| Server                                | Backs skill               | Tools                                                              |
+| ------------------------------------- | ------------------------- | ------------------------------------------------------------------ |
+| [`code-mode`](mcp-servers/code-mode/) | `ak-admin` (instance ops) | `search`, `execute`, `validate_blueprint`, `prepare_apply`, `docs` |
 
 The repo's [`.mcp.json`](.mcp.json) registers them for plugin installs via `${CLAUDE_PLUGIN_ROOT}`. Dependencies (`node_modules`) are gitignored and resolved automatically:
 
