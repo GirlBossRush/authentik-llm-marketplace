@@ -50,40 +50,39 @@ Any attribute not listed for its model → reject. Bins:
 - **PASS:** `name`, `slug`, UI metadata (`meta_*`).
 
 ### 3.3 Curated built-in reference allow-list
-The *only* permitted references to pre-existing objects (required because a working provider must reference built-ins):
-- default authorization + invalidation flows,
-- the default signing key (instance self-signed certificate),
-- the standard scope mappings: `openid`, `profile`, `email`, `offline_access` (the last flagged — enables refresh tokens).
+The *only* permitted references to pre-existing objects (required because a working provider must reference built-ins). Verified identifiers (Phase 0):
+- **Flows** (by slug): `default-provider-authorization-explicit-consent` (explicit consent — NOT the implicit-consent variant) and `default-provider-invalidation-flow`.
+- **Default signing key** (by `!Find` on stable name): `!Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]`. Forcing to this makes SAML/OAuth2 onboarding complete rather than leaving the key blank.
+- **Scope mappings** (by stable `managed` key): `goauthentik.io/providers/oauth2/scope-openid`, `-email`, `-profile`, `-offline_access` (the last flagged — enables refresh tokens). **Explicitly EXCLUDED:** `scope-authentik_api` (`goauthentik.io/api` — grants authentik API access = privilege escalation) and `scope-entitlements`.
 
-Note: in authentik, **OAuth2 scopes ARE `ScopeMapping` property-mapping objects**, so "select scopes" = "reference built-in scope mappings." That is why referencing the curated built-ins is permitted while *creating* new property mappings is BLOCKed. (Stable identifiers for these built-ins: **verify in Phase 0, §5.1**; fall back to slug-matching if UUIDs vary per instance.)
+Note: in authentik, **OAuth2 scopes ARE `ScopeMapping` property-mapping objects** assigned via the provider's `property_mappings` field (confirmed). So "select scopes" = "reference built-in scope mappings." That is why referencing the curated built-ins is permitted while *creating* new property mappings is BLOCKed, and why a reference to any non-curated property mapping (incl. `scope-authentik_api`) is BLOCKed.
 
 Residual accepted risk: if the operator has themselves modified a default flow/scope-mapping to be unsafe, the agent inherits that — a pre-existing instance-config risk, out of the agent's threat model (the agent can't *choose* a different flow).
 
-### 3.4 Structural validator rules (from v1 §11 gates)
-- Parse **all** YAML documents (`parseAllDocuments`), not just the first (multi-doc bypass).
+### 3.4 Structural validator rules (from v1 §11 gates, updated by Phase 0)
+- **Reject multi-document input.** authentik's importer uses a single-document `load()` and errors on multi-doc, so a second `---` document can never be applied — there is no bypass. The validator rejects multi-doc outright (rather than silently validating only the first doc, as v1 did). *Supersedes v1's planned `parseAllDocuments` gate.*
 - Reject non-object `attrs`.
 - Case-normalize model names before allow-list lookup.
+- Detect and constrain `!Find` / `!KeyOf` references (authentik's blueprint tags) — only references resolving to the curated built-ins (§3.3) are permitted; all other external references are BLOCKed.
 
 ## 4. Credential-free handoff
 
 All artifacts are **server-computed** (trusted MCP code over live reads), never agent-narrated. The agent supplies only the blueprint YAML (data); the residual trust hole is scope-selection (the agent chooses which objects the blueprint touches), addressed by the non-collapsible object list below.
 
 - **Trusted diff:** proposed vs current instance state, computed via read calls. Presentation forces attention: a **non-collapsible full object list** (type + name, unexpected models flagged) so a snuck-in object can't hide; ALLOW+FLAG trust attributes highlighted; FORCE/PASS fields shown read-only/greyed (visible, not collapsed) so the object set's completeness is obvious. (Diff/undo fidelity from read APIs: **verify in Phase 0, §5.4**.)
-- **Trusted undo snapshot:** export current state of affected objects → a restore-point blueprint. Honest reversibility taxonomy: clean for pure config (same UUID); lossy for delete/recreate (UUID churn breaks references); impossible for secret rotation and external side-effects (SCIM deprovisioning, webhooks). The UI states this plainly.
+- **Trusted undo snapshot:** export current state of affected objects → a restore-point blueprint. authentik ships an **`ak export_blueprint`** management command that can be leveraged here. Honest reversibility taxonomy: clean for pure config (same UUID); lossy for delete/recreate (UUID churn breaks references); impossible for secret rotation and external side-effects (SCIM deprovisioning, webhooks). The UI states this plainly.
 - **Irreversible-op flagging:** destructive entries (`state: absent` on sources/providers, crypto) are flagged and steered to a manual host-CLI path — never part of the smooth handoff.
-- **Apply handoff:** output = the validated blueprint + trusted diff + undo blueprint + the **exact operator-run apply command** (`ak`-CLI or, if none, a curl/UI step — **verify in Phase 0, §5.2**). The MCP never applies.
+- **Apply handoff:** output = the validated blueprint + trusted diff + undo blueprint + the **exact operator-run apply command**: `ak apply_blueprint <file>` (confirmed management command). The MCP never applies.
 - **Honesty guardrails (anti-false-confidence):** no one-click apply; the summary states "validated as mechanically safe; you remain responsible for the flagged attributes and the object list; this tool will not apply the change"; active-engagement confirm (e.g., acknowledge the object count).
 
-## 5. Phase 0 — must-verify probes (run BEFORE writing validator code)
+## 5. Phase 0 — must-verify probes (COMPLETED 2026-06-25, against authentik `2026.8.0-rc1` codebase + schema)
 
-Per the verify-before-build mandate. Cheapest probe per assumption:
-1. **Stable slugs/UUIDs** for default flows / signing key / scope mappings (else slug-match fallback) — list them on the live instance.
-2. **Operator CLI apply path** exists (`ak blueprint apply <file>`?) — try it; else fall back to a curl/UI handoff.
-3. **Exact field names + scope representation** on the OAuth2/SAML provider serializers (scopes = property mappings) — inspect `schema.yml` / a live provider.
-4. **Diff/undo fidelity** from read APIs — fetch a provider, confirm enough state is exposed to diff + rebuild.
-5. **Multi-document blueprint** parsing — confirm authentik applies multi-doc, so `parseAllDocuments` is required.
-
-Probe outcomes feed the concrete plan (field names, identifiers, apply command).
+Verdict: **GO.** All assumptions resolved; findings folded into §3–§4 above.
+1. **Stable identifiers** — ✅ default flow slugs (`default-provider-authorization-explicit-consent`, `default-provider-invalidation-flow`), default key by name (`authentik Self-signed Certificate`), scope mappings by `managed` key (`goauthentik.io/providers/oauth2/scope-*`). All stable across instances.
+2. **Operator apply path** — ✅ `ak apply_blueprint <file>` management command exists (`export_blueprint` too, for undo).
+3. **Field names + scopes** — ✅ confirmed on the OAuth2 provider serializer (`redirect_uris`, `client_type`, `signing_key`, `sub_mode`, `issuer_mode`, `include_claims_in_id_token`, `property_mappings`). Scopes are `ScopeMapping` objects on `property_mappings`. **New finding:** built-in `scope-authentik_api` grants API access → excluded from the curated set (§3.3).
+4. **Diff/undo fidelity** — ✅ serializers expose the config fields on GET; `export_blueprint` available. Final fidelity confirmed by integration test during build.
+5. **Multi-doc** — ✅ resolved *against* the original assumption: authentik uses single-doc `load()` and errors on multi-doc, so no bypass exists. Validator **rejects multi-doc** instead of parsing all (§3.4) — a simplification.
 
 ## 6. Testing approach
 
