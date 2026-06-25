@@ -34,6 +34,7 @@ export function createTools({ spec, config }: CreateToolsDeps) {
         code: string;
     }): Promise<SandboxResult> => {
         const ak = createAk(config, { allowWrites: false });
+
         return runInSandbox(code, ak, {});
     };
 

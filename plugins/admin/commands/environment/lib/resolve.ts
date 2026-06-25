@@ -16,6 +16,7 @@ export const INTEGRATIONS_ORIGIN = "https://integrations.goauthentik.io";
 /** Trim trailing slashes; treat empty/whitespace as unset. */
 function normalizeOrigin(value: string | undefined): string | undefined {
     const trimmed = value?.trim();
+
     return trimmed ? trimmed.replace(/\/+$/, "") : undefined;
 }
 
@@ -53,12 +54,14 @@ export function resolveDocsURL(
         normalizeOrigin(env.AK_AGENT_DOCS_URL) ??
         normalizeOrigin(env.AK_DOCS_URL);
     if (override) return override;
+
     if (version) {
         return isPrerelease(version)
             ? (normalizeOrigin(env.PRE_RELEASE_ORIGIN) ?? DOCS_NEXT_ORIGIN)
             : (normalizeOrigin(env.CURRENT_RELEASE_ORIGIN) ??
                   DOCS_CURRENT_ORIGIN);
     }
+
     return DOCS_NEXT_ORIGIN;
 }
 

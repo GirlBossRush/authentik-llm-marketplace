@@ -14,5 +14,6 @@ export function loadConfig(env: Record<string, string | undefined>): AKConfig {
     const token = env.AUTHENTIK_TOKEN?.trim();
     if (!token)
         throw new Error("AUTHENTIK_TOKEN is required (an authentik API token)");
+
     return { baseURL: url.replace(/\/+$/, ""), token };
 }

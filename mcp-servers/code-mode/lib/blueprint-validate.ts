@@ -102,18 +102,22 @@ function collectTaggedRefs(node: Node | null | undefined): {
             violations.push(
                 "!Find must be a sequence [model, [field, value], ...]",
             );
+
             return;
         }
 
         const items = n.items;
+
         if (items.length < 2) {
             violations.push(
                 "!Find must have a model and at least one [field, value] condition",
             );
+
             return;
         }
 
         const modelNode = items[0];
+
         // Default-deny: the understood `!Find` resolves at apply time
         // (common.py `Find._get_instance` `.resolve()`s any YAMLTag in the
         // model name and in BOTH halves of every condition). A nested tag here
@@ -124,15 +128,20 @@ function collectTaggedRefs(node: Node | null | undefined): {
             violations.push(
                 `!Find model name must be a plain untagged scalar, got tag "${nodeTag(modelNode)}"`,
             );
+
             return;
         }
+
         if (!(isScalar(modelNode) && typeof modelNode.value === "string")) {
             violations.push("!Find model name must be a scalar string");
+
             return;
         }
+
         // Each remaining item is a condition: [field, scalar].
         for (let i = 1; i < items.length; i++) {
             const cond = items[i];
+
             if (!isSeq(cond)) {
                 violations.push(
                     "!Find condition must be a [field, value] sequence",
@@ -151,6 +160,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
 
             const fieldNode = cond.items[0];
             const valNode = cond.items[1];
+
             // Default-deny tags on BOTH items of the condition (field + value).
             if (nodeTag(fieldNode) !== "") {
                 violations.push(
@@ -178,6 +188,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
 
             if (!isScalar(valNode)) {
                 violations.push("!Find condition value must be a scalar");
+
                 return;
             }
 
@@ -203,12 +214,14 @@ function collectTaggedRefs(node: Node | null | undefined): {
                 violations.push(
                     `tag "${tag}" is not permitted (only !Find and !KeyOf are allowed)`,
                 );
+
                 // Do not recurse into the rejected node — its shape is untrusted.
                 return;
             }
 
             if (tag === "!Find") {
                 extractFind(n);
+
                 // extractFind already validated the shape and recursed where safe.
                 return;
             }
@@ -221,6 +234,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
                         "!KeyOf must be a scalar id referencing an entry in this blueprint",
                     );
                 }
+
                 return;
             }
         }
@@ -250,6 +264,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
     }
 
     walk(node);
+
     return { refs, violations };
 }
 
@@ -329,6 +344,7 @@ function attrValueNode(
     const entryNode = entriesNode.items[entryIndex];
     if (!isMap(entryNode as Node)) return null;
     let attrsNode: Node | null = null;
+
     for (const pair of (entryNode as { items: unknown[] }).items) {
         if (isPair(pair) && isScalar(pair.key) && pair.key.value === "attrs") {
             attrsNode = (pair.value as Node) ?? null;
@@ -337,11 +353,13 @@ function attrValueNode(
     }
 
     if (!isMap(attrsNode)) return null;
+
     for (const pair of attrsNode.items) {
         if (isPair(pair) && isScalar(pair.key) && pair.key.value === attrKey) {
             return (pair.value as Node) ?? null;
         }
     }
+
     return null;
 }
 
@@ -363,6 +381,7 @@ function checkRefAttr(node: Node | null): string | null {
     }
 
     const tag = typeof node.tag === "string" ? node.tag : "";
+
     // A tagged node is a SINGLE reference (note: a `!Find` node is structurally
     // a YAMLSeq that carries the `!Find` tag — its tag must be inspected before
     // any isSeq() branch, or it would be misread as a plain list).
@@ -373,12 +392,14 @@ function checkRefAttr(node: Node | null): string | null {
 
         return null;
     }
+
     // An UNtagged sequence is a list of references (e.g. property_mappings):
     // each element must itself be a permitted single reference.
     if (isSeq(node)) {
         for (const item of node.items) {
             const itemTag =
                 isNode(item) && typeof item.tag === "string" ? item.tag : "";
+
             if (
                 typeof itemTag !== "string" ||
                 !REF_PERMITTED_TAGS.has(itemTag)
@@ -389,6 +410,7 @@ function checkRefAttr(node: Node | null): string | null {
 
         return null;
     }
+
     // Untagged scalar / map → a plain literal, rejected.
     return "must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
 }
@@ -406,6 +428,7 @@ function checkRefAttr(node: Node | null): string | null {
  */
 function parseTokenDuration(val: unknown): number | null {
     if (typeof val === "number") return val;
+
     if (typeof val === "string") {
         // authentik accepts timedelta strings like "hours=1;minutes=30"
         const match = /^(\d+)$/.exec(val.trim());
@@ -415,6 +438,7 @@ function parseTokenDuration(val: unknown): number | null {
         // unparseable part) rejects the whole value — never silently ignore.
         let total = 0;
         let parsed = false;
+
         for (const part of val.split(";")) {
             if (part.trim() === "") continue; // tolerate trailing/empty segments
             const kv = /^\s*(\w+)\s*=\s*(\d+)\s*$/.exec(part.trim());
@@ -422,6 +446,7 @@ function parseTokenDuration(val: unknown): number | null {
             const [, unit, amount] = kv;
             parsed = true;
             const n = parseInt(amount!, 10);
+
             switch (unit) {
                 case "seconds":
                     total += n;
@@ -445,6 +470,7 @@ function parseTokenDuration(val: unknown): number | null {
 
         return parsed ? total : null;
     }
+
     return null;
 }
 
@@ -468,11 +494,13 @@ export function validateBlueprint(content: string): BlueprintValidation {
         violations.push(
             "multi-document YAML is not permitted; supply a single document",
         );
+
         return { ok: false, violations, flags };
     }
 
     // --- Parse with tag preservation ---
     let pdoc: Document;
+
     try {
         pdoc = parseDocument(content, { logLevel: "silent" });
     } catch (err) {
@@ -493,6 +521,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
 
     // Parse errors handled; get plain JSON for value checks
     let doc: unknown;
+
     try {
         doc = pdoc.toJSON() as unknown;
     } catch (err) {
@@ -504,15 +533,19 @@ export function validateBlueprint(content: string): BlueprintValidation {
     }
 
     const entries = (doc as { entries?: unknown })?.entries;
+
     if (!Array.isArray(entries)) {
         violations.push("blueprint has no `entries` list");
+
         return { ok: false, violations, flags };
     }
 
     // --- Collect the set of entry `id`s for self-contained !KeyOf checks ---
     const definedIDs = new Set<string>();
+
     for (const entry of entries) {
         const id = (entry as { id?: unknown })?.id;
+
         if (typeof id === "string" && id !== "") {
             definedIDs.add(id);
         }
@@ -522,8 +555,10 @@ export function validateBlueprint(content: string): BlueprintValidation {
         const raw = entry as Record<string, unknown>;
 
         const rawModel = typeof raw?.model === "string" ? raw.model : "";
+
         if (!rawModel) {
             violations.push(`entry ${i}: missing model`);
+
             return;
         }
 
@@ -535,11 +570,13 @@ export function validateBlueprint(content: string): BlueprintValidation {
             violations.push(
                 `entry ${i}: model "${model}" is not in the allow-list (only curated models are permitted)`,
             );
+
             return; // skip attr checking for unknown model
         }
 
         // --- attrs must be a plain object ---
         const rawAttrs = raw.attrs;
+
         if (
             rawAttrs === null ||
             typeof rawAttrs !== "object" ||
@@ -548,6 +585,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
             violations.push(
                 `entry ${i}: attrs must be a plain object, got ${Array.isArray(rawAttrs) ? "array" : typeof rawAttrs}`,
             );
+
             return;
         }
 
@@ -600,6 +638,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         i,
                         key,
                     );
+
                     if (
                         isNode(fnode) &&
                         typeof fnode.tag === "string" &&
@@ -610,6 +649,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         );
                         break;
                     }
+
                     // Value must deep-equal the policy's required value
                     if (JSON.stringify(val) !== JSON.stringify(rule.value)) {
                         violations.push(
@@ -630,6 +670,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         key,
                     );
                     const msg = checkRefAttr(refNode);
+
                     if (msg !== null) {
                         violations.push(
                             `entry ${i}: attribute "${key}" ${msg}`,
@@ -649,6 +690,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         i,
                         key,
                     );
+
                     if (
                         isNode(cnode) &&
                         typeof cnode.tag === "string" &&
@@ -662,6 +704,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
                     // Value must be a non-negative number ≤ maxSeconds.
                     const maxSec = rule.maxSeconds ?? Infinity;
                     const num = parseTokenDuration(val);
+
                     if (num === null || num < 0 || num > maxSec) {
                         violations.push(
                             `entry ${i}: attribute "${key}" must be a non-negative value of at most ${maxSec}s`,
@@ -682,8 +725,10 @@ export function validateBlueprint(content: string): BlueprintValidation {
                 pdoc.contents,
             );
             violations.push(...tagViolations);
+
             for (const ref of refs) {
                 const msg = checkRef(ref, definedIDs);
+
                 if (msg !== null) {
                     violations.push(msg);
                 }

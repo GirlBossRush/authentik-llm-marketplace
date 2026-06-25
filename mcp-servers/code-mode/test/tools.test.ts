@@ -23,6 +23,7 @@ async function withMock<T>(
     const server = createServer(handler);
     await new Promise<void>((r) => server.listen(0, () => r()));
     const { port } = server.address() as AddressInfo;
+
     try {
         return await fn(`http://127.0.0.1:${port}`);
     } finally {
@@ -131,6 +132,7 @@ test("tools.prepare calls through to a READ-ONLY ak (writes blocked)", async () 
     );
     // The prepare pipeline must only ever read — never write — through ak.
     assert.ok(methods.length > 0, "expected prepare to issue ak reads");
+
     for (const m of methods) {
         assert.ok(
             ["GET", "HEAD", "OPTIONS"].includes(m),

@@ -79,6 +79,7 @@ test("worst classification wins: clean + lossy + impossible => impossible", asyn
                     status: 200,
                     data: { results: [{ slug: "exists", name: "Old" }] },
                 };
+
             return { status: 200, data: { results: [] } };
         },
     };
@@ -111,6 +112,7 @@ test("worst classification wins: clean + lossy (no impossible) => lossy", async 
                     status: 200,
                     data: { results: [{ slug: "exists", name: "Old" }] },
                 };
+
             return { status: 200, data: { results: [] } };
         },
     };

@@ -267,6 +267,7 @@ test("C3c: rejects other resolving tags (!Format, !Condition, !If, !File, !Enume
         "!AtIndex 0",
         "!ParseJSON '{}'",
     ];
+
     for (const t of tags) {
         const r = validateBlueprint(`version: 1
 entries:

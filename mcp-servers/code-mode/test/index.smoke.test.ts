@@ -75,6 +75,7 @@ test("server starts, serves schema, and responds to tools/list over stdio", asyn
         assert.ok(listMsg, "tools/list response not found");
         const toolNames = (listMsg.result?.tools ?? []).map((t) => t.name);
         assert.ok(toolNames.includes("prepare_apply"));
+
         for (const name of toolNames) {
             assert.doesNotMatch(
                 name,

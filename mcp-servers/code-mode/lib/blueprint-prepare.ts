@@ -126,6 +126,7 @@ export async function prepareApply(
 ): Promise<PrepareResult> {
     // --- Validate FIRST: never prepare an invalid thing. ---
     const validation = validateBlueprint(content);
+
     if (!validation.ok) {
         return {
             ok: false,

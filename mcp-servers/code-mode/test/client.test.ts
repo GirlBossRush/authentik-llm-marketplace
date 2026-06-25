@@ -13,6 +13,7 @@ async function withMock<T>(
     const server = createServer(handler);
     await new Promise<void>((r) => server.listen(0, () => r()));
     const { port } = server.address() as AddressInfo;
+
     try {
         return await fn(`http://127.0.0.1:${port}`);
     } finally {

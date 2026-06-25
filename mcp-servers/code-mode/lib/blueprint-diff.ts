@@ -116,6 +116,7 @@ function formatIdentifier(identifiers: Record<string, unknown>): string {
     const parts = Object.entries(identifiers)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}=${String(v)}`);
+
     return parts.join(",");
 }
 
@@ -127,6 +128,7 @@ function matchesIdentifiers(
     for (const [key, value] of Object.entries(identifiers)) {
         if (obj[key] !== value) return false;
     }
+
     return true;
 }
 
@@ -134,10 +136,12 @@ function matchesIdentifiers(
 function extractResults(data: unknown): Record<string, unknown>[] {
     if (data && typeof data === "object" && "results" in data) {
         const results = (data as { results: unknown }).results;
+
         if (Array.isArray(results)) {
             return results.filter(isObject);
         }
     }
+
     return [];
 }
 
@@ -150,6 +154,7 @@ function extractResults(data: unknown): Record<string, unknown>[] {
 function hasMorePages(data: unknown): boolean {
     if (data && typeof data === "object" && "pagination" in data) {
         const pagination = (data as { pagination: unknown }).pagination;
+
         if (
             pagination &&
             typeof pagination === "object" &&
@@ -159,9 +164,11 @@ function hasMorePages(data: unknown): boolean {
             if (typeof next === "number") return next > 0;
             // DRF's default paginator uses a URL string for `next`.
             if (typeof next === "string") return next.length > 0;
+
             return Boolean(next);
         }
     }
+
     return false;
 }
 
@@ -186,12 +193,15 @@ async function findLiveObject(
     if (!mapping) return { kind: "unconfirmed" };
 
     const query: Record<string, string | number> = {};
+
     for (const param of mapping.filterParams) {
         const value = entry.identifiers[param];
+
         if (value !== undefined && value !== null) {
             query[param] = String(value);
         }
     }
+
     // Endpoints without an exact identifier filter are matched client-side over
     // a single page; widen that page to the API maximum.
     if (mapping.wideFetch) {
@@ -212,6 +222,7 @@ async function findLiveObject(
     if (mapping.wideFetch && hasMorePages(res.data)) {
         return { kind: "unconfirmed" };
     }
+
     return { kind: "absent" };
 }
 
@@ -221,18 +232,22 @@ function deepEqual(a: unknown, b: unknown): boolean {
     if (typeof a !== typeof b) return false;
     if (a === null || b === null) return false;
     if (typeof a !== "object") return false;
+
     if (Array.isArray(a) || Array.isArray(b)) {
         if (!Array.isArray(a) || !Array.isArray(b)) return false;
         if (a.length !== b.length) return false;
+
         return a.every((item, i) => deepEqual(item, b[i]));
     }
 
     const ao = a as Record<string, unknown>;
     const bo = b as Record<string, unknown>;
     const keys = new Set([...Object.keys(ao), ...Object.keys(bo)]);
+
     for (const key of keys) {
         if (!deepEqual(ao[key], bo[key])) return false;
     }
+
     return true;
 }
 
@@ -242,12 +257,15 @@ function diffAttrs(
     attrs: Record<string, unknown>,
 ): Record<string, { from: unknown; to: unknown }> | undefined {
     const changed: Record<string, { from: unknown; to: unknown }> = {};
+
     for (const [key, to] of Object.entries(attrs)) {
         const from = live[key];
+
         if (!deepEqual(from, to)) {
             changed[key] = { from, to };
         }
     }
+
     return Object.keys(changed).length > 0 ? changed : undefined;
 }
 
@@ -284,6 +302,7 @@ export async function computeDiff(
 
         const live = result.live;
         const changedFields = diffAttrs(live, attrs);
+
         if (changedFields) {
             objects.push({
                 model: entry.model,

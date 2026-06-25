@@ -37,6 +37,7 @@ export async function runInSandbox(
     const wrapped = `(async () => {\n${code}\n})()`;
     const script = new vm.Script(wrapped, { filename: "agent-code.ts" });
     const result = await script.runInContext(context, { timeout: timeoutMs });
+
     // Force a plain serializable value (and surface non-serializable results early).
     return {
         result:

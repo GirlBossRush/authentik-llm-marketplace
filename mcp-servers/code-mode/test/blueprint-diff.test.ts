@@ -9,6 +9,7 @@ const ak = {
                 status: 200,
                 data: { results: [{ slug: "grafana", name: "Old" }] },
             };
+
         return { status: 200, data: { results: [] } };
     },
 };
@@ -145,6 +146,7 @@ test("a provider entry resolves to its providers endpoint and matches by name", 
     const live = {
         request: async (_m: string, path: string) => {
             requestedPath = path;
+
             return {
                 status: 200,
                 data: {
@@ -280,6 +282,7 @@ test("provider reads request the max page size to widen the client-side match wi
             opts?: { query?: Record<string, string | number> },
         ) => {
             pageSize = opts?.query?.page_size;
+
             return {
                 status: 200,
                 data: { results: [{ name: "my-oauth" }] },

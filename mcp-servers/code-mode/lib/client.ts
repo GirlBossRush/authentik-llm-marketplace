@@ -43,6 +43,7 @@ export function createAk(
         }
 
         const verb = method.toUpperCase();
+
         if (!allowWrites && !READ_METHODS.has(verb)) {
             throw new Error(
                 `writes are not supported (this server is read-only) (attempted ${verb} ${path})`,
@@ -50,6 +51,7 @@ export function createAk(
         }
 
         const url = new URL(`${config.baseURL}/api/v3${path}`);
+
         for (const [k, v] of Object.entries(opts.query ?? {})) {
             url.searchParams.set(k, String(v));
         }
@@ -66,6 +68,7 @@ export function createAk(
         });
         const text = await res.text();
         let data: unknown;
+
         try {
             data = text ? JSON.parse(text) : null;
         } catch {
@@ -74,5 +77,6 @@ export function createAk(
 
         return { status: res.status, data };
     }
+
     return { request };
 }

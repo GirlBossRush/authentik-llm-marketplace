@@ -7,6 +7,7 @@ const envFilePath = agentEnvPathBuilder(".env");
 
 if (existsSync(envFilePath)) {
     console.error(`Loading environment from ${envFilePath}`);
+
     try {
         loadEnvFile(envFilePath);
     } catch (error) {

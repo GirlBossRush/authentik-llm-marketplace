@@ -82,6 +82,7 @@ function matchesIdentifiers(
     for (const [key, value] of Object.entries(identifiers)) {
         if (obj[key] !== value) return false;
     }
+
     return true;
 }
 
@@ -89,10 +90,12 @@ function matchesIdentifiers(
 function extractResults(data: unknown): Record<string, unknown>[] {
     if (data && typeof data === "object" && "results" in data) {
         const results = (data as { results: unknown }).results;
+
         if (Array.isArray(results)) {
             return results.filter(isObject);
         }
     }
+
     return [];
 }
 
@@ -110,8 +113,10 @@ async function findLiveObject(
     if (!mapping) return null;
 
     const query: Record<string, string | number> = {};
+
     for (const param of mapping.filterParams) {
         const value = entry.identifiers[param];
+
         if (value !== undefined && value !== null) {
             query[param] = String(value);
         }
@@ -125,6 +130,7 @@ async function findLiveObject(
     if (res.status !== 200) return null;
 
     const results = extractResults(res.data);
+
     return (
         results.find((obj) => matchesIdentifiers(obj, entry.identifiers)) ??
         null
@@ -200,6 +206,7 @@ export async function buildUndoSnapshot(
         // Pure attribute update of an existing object (same UUID): the restore
         // point sets exactly the touched fields back to their current values.
         const restoreAttrs: Record<string, unknown> = {};
+
         for (const key of Object.keys(attrs)) {
             restoreAttrs[key] = live[key];
         }
