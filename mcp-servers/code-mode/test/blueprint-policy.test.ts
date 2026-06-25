@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ALLOWED_MODELS, MODEL_ATTRS, CURATED_REFS, EXCLUDED_SCOPES } from "#blueprint-policy";
+import { ALLOWED_MODELS, MODEL_ATTRS, CURATED_REFS, EXCLUDED_SCOPES, isDestructiveEntry } from "#blueprint-policy";
 
 test("only the three onboarding models are allowed", () => {
     assert.deepEqual([...ALLOWED_MODELS].sort(), [
@@ -30,4 +30,13 @@ test("oauth2 provider forces safe token-trust attrs and flags redirect_uris", ()
     assert.equal(a.include_claims_in_id_token?.value, false);
     assert.equal(a.redirect_uris?.bin, "flag");
     assert.equal(a.issuer_mode?.bin, "force");
+    assert.equal(a.sub_mode?.bin, "force");
+    assert.equal(a.sub_mode?.value, "hashed_user_id");
+    assert.equal(a.issuer_mode?.value, "per_provider");
+});
+
+test("isDestructiveEntry: deletes and crypto are destructive, plain creates are not", () => {
+    assert.equal(isDestructiveEntry("authentik_sources_oauth.oauthsource", "absent"), true);
+    assert.equal(isDestructiveEntry("authentik_crypto.certificatekeypair", undefined), true);
+    assert.equal(isDestructiveEntry("authentik_providers_oauth2.oauth2provider", undefined), false);
 });

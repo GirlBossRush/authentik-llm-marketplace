@@ -51,7 +51,7 @@ export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRu
         issuer_mode: { bin: "force", value: "per_provider" },
         include_claims_in_id_token: { bin: "force", value: false },
         access_code_validity: { bin: "cap", maxSeconds: TOKEN_MAX },
-        token_validity: { bin: "cap", maxSeconds: TOKEN_MAX },
+        access_token_validity: { bin: "cap", maxSeconds: TOKEN_MAX },
         // signing_key handled by reference rules (force to CURATED_REFS.defaultSigningKeyName)
     },
     "authentik_providers_saml.samlprovider": {
@@ -61,10 +61,7 @@ export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRu
     },
 };
 
-export const DESTRUCTIVE_MODEL_PREFIXES = ["authentik_crypto.", "authentik_sources_", "authentik_providers_"];
-
-/** A blueprint entry that deletes a source/provider or touches crypto is irreversible. */
+/** A blueprint entry that deletes any model or touches crypto is irreversible. */
 export function isDestructiveEntry(model: string, state: string | undefined): boolean {
-    if (state === "absent") return true;
-    return model.startsWith("authentik_crypto.");
+    return state === "absent" || model.startsWith("authentik_crypto.");
 }
