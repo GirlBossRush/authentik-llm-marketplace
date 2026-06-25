@@ -8,7 +8,7 @@ const SECRET_REVEAL = /\/(view_key|view_private_key)\/?$/;
 
 /** Endpoints that return a secret value (token key, private key). Blocked even for reads. */
 export function isSecretRevealPath(path: string): boolean {
-    return SECRET_REVEAL.test(path.split("?")[0]);
+    return SECRET_REVEAL.test(path.replace(/\?.*$/, ""));
 }
 
 export interface AkRequestOptions {
