@@ -1,3 +1,12 @@
+/**
+ * @file Integration suite for validateBlueprint — exercises the whole policy
+ * pipeline end-to-end on real YAML. The fine-grained contracts of the pieces it
+ * composes are unit-tested separately: tags.test.ts (the default-deny tag walk),
+ * refs.test.ts (reference curation), and duration.test.ts (token-duration
+ * parsing). The cases here prove those pieces are wired together correctly and
+ * pin the security behavior that emerges only from the whole pipeline.
+ */
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
