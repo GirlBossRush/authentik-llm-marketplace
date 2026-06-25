@@ -26,7 +26,7 @@ test("PIVOT: discover an endpoint, read data, then validate a proposed blueprint
         operations.some((o) => o.operationId === "stages_captcha_create"),
     );
 
-    // 2. The agent proposes a blueprint; the validator rejects a denied model.
+    // 2. The agent proposes a blueprint; the validator rejects a non-allow-listed model.
     const badBlueprint = `
 version: 1
 entries:
@@ -36,17 +36,17 @@ entries:
 `;
     const badResult = tools.validate({ content: badBlueprint });
     assert.equal(badResult.ok, false);
-    assert.ok(badResult.violations.some((v) => v.includes("denied model")));
+    // v2: model is rejected as not in the allow-list (not the old "denied model" message)
+    assert.ok(badResult.violations.some((v) => v.includes("allow-list") || v.includes("not permitted")));
 
-    // 3. A clean blueprint passes.
+    // 3. A clean blueprint (allowed model) passes.
     const goodBlueprint = `
 version: 1
 entries:
-  - model: authentik_flows.flow
+  - model: authentik_core.application
     attrs:
-      name: my-flow
-      slug: my-flow
-      designation: authentication
+      name: my-app
+      slug: my-app
 `;
     const goodResult = tools.validate({ content: goodBlueprint });
     assert.equal(goodResult.ok, true);
