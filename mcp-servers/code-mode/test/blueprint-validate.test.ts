@@ -178,3 +178,166 @@ entries:
     attrs: {name: x, slug: x}`);
     assert.equal(r.ok, true);
 });
+
+// ---------------------------------------------------------------------------
+// v2 adversarial bypass tests (task-2-review.md) — default-deny on tags
+// ---------------------------------------------------------------------------
+
+// C1 — shape-brittle !Find extraction. Alternate valid shapes must be rejected,
+// not silently extract nothing and pass.
+
+test("C1a: rejects empty !Find [] sequence", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find []`);
+    assert.equal(r.ok, false);
+});
+
+test("C1b: rejects !Find with a scalar condition (inner not a seq)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, scope-openid]`);
+    assert.equal(r.ok, false);
+});
+
+test("C1c: rejects !Find whose condition value is a nested sequence", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, [nested, seq]]]`);
+    assert.equal(r.ok, false);
+});
+
+// C2 — only the FIRST condition inspected. A curated first condition plus a
+// second real condition (pk lookup) AND-combines server-side → must reject.
+test("C2: rejects multi-condition !Find (curated first + arbitrary second)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid], [pk, 999]]`);
+    assert.equal(r.ok, false);
+});
+
+// C3 — default-deny on tags. Every resolving tag other than !Find/!KeyOf rejects.
+test("C3a: rejects !FindObject (resolves+inlines an arbitrary object)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      property_mappings:
+        - !FindObject [authentik_providers_oauth2.scopemapping, [managed, goauthentik.io/providers/oauth2/scope-openid]]`);
+    assert.equal(r.ok, false);
+});
+
+test("C3b: rejects !Context (reads instance context)", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_core.application
+    attrs:
+      name: x
+      slug: x
+      meta_description: !Context some_secret`);
+    assert.equal(r.ok, false);
+});
+
+test("C3c: rejects other resolving tags (!Format, !Condition, !If, !File, !Enumerate, !Value, !Index, !AtIndex, !ParseJSON)", () => {
+    const tags = [
+        "!Format [foo]",
+        "!Condition [AND, true]",
+        "!If [true, a, b]",
+        "!File secret.txt",
+        "!Enumerate [[], SEQ, x]",
+        "!Value x",
+        "!Index 0",
+        "!AtIndex 0",
+        "!ParseJSON '{}'",
+    ];
+    for (const t of tags) {
+        const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_core.application
+    attrs:
+      name: x
+      slug: x
+      meta_description: ${t}`);
+        assert.equal(r.ok, false, `tag ${t} should be rejected`);
+    }
+});
+
+// C4 — scalar !Find must NOT throw; returns a violation instead.
+test("C4: scalar !Find (tag on scalar) returns a violation, never throws", () => {
+    let r: ReturnType<typeof validateBlueprint> | undefined;
+    assert.doesNotThrow(() => {
+        r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_saml.samlprovider
+    attrs:
+      name: x
+      acs_url: !Find evil`);
+    });
+    assert.equal(r!.ok, false);
+});
+
+// I3 / #2 — !KeyOf must reference an id defined within THIS blueprint.
+test("KeyOf to an undefined/external id is rejected", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_core.application
+    attrs:
+      name: x
+      slug: x
+      meta_launch_url: !KeyOf some-external-id`);
+    assert.equal(r.ok, false);
+});
+
+test("KeyOf to an id defined within this blueprint is permitted", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - id: my-provider
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: prov
+  - model: authentik_core.application
+    attrs:
+      name: x
+      slug: x
+      meta_launch_url: !KeyOf my-provider`);
+    assert.equal(r.ok, true);
+});
+
+// I1 — negative cap.
+test("I1: rejects a negative cap value", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      access_token_validity: -5`);
+    assert.equal(r.ok, false);
+});
+
+// I2 — unknown duration unit must reject, not be ignored.
+test("I2: rejects unknown duration units", () => {
+    const r = validateBlueprint(`version: 1
+entries:
+  - model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: x
+      access_token_validity: "fortnights=10;hours=1"`);
+    assert.equal(r.ok, false);
+});

@@ -1,6 +1,6 @@
 /** @file Validate a proposed authentik Blueprint without applying it (v2 policy-enforcement point). */
 
-import { parseDocument, isMap, isSeq, isPair, isScalar, type Document, type Node, type YAMLSeq, type Scalar } from "yaml";
+import { parseDocument, isMap, isSeq, isPair, isScalar, type Document, type Node } from "yaml";
 
 import {
     ALLOWED_MODELS,
@@ -31,87 +31,192 @@ export interface BlueprintValidation {
 // ---------------------------------------------------------------------------
 
 /**
- * Walk a yaml.js Document AST and collect all !Find / !KeyOf tagged nodes.
- * Returns each as a record of { tag, targetValue } where targetValue is the
- * second element of a !Find sequence (the [field, value] pair's value string),
- * or the scalar value for !KeyOf.
+ * Default-deny allow-list of YAML tags this validator understands AND can prove
+ * safe. ANY node carrying a non-empty tag outside this set is rejected on sight
+ * — we never enumerate dangerous tags, only permitted ones. This structurally
+ * closes whole classes of bypass (!FindObject, !Context, !Format, !Env, …).
  *
- * Note: yaml v2 uses .items on both YAMLMap (containing Pair objects) and
- * YAMLSeq (containing child nodes). Use the isMap/isSeq/isPair helpers to
- * distinguish them — do NOT check for a "pairs" property (it doesn't exist).
+ * yaml v2 normalizes a local tag like `!Find` to the resolved form `!Find`
+ * (handle/suffix); we compare against that exact string.
+ */
+const PERMITTED_TAGS: ReadonlySet<string> = new Set(["!Find", "!KeyOf"]);
+
+/**
+ * A tagged reference whose target we must curate-check.
+ *  - For !Find: one entry per condition value (the scalar at index 1 of each
+ *    [field, value] pair), each AND-combined server-side, so EVERY one matters.
+ *  - For !KeyOf: the scalar id, which must reference an `id` defined within this
+ *    same blueprint (self-contained).
  */
 interface TaggedRef {
-    tag: string;
-    /** The resolved target string (scope slug, flow slug, or signing-key name). */
+    tag: "!Find" | "!KeyOf";
+    /** The resolved target string (scope slug, flow slug, signing-key name, or KeyOf id). */
     targetValue: string;
 }
 
-function collectTaggedRefs(node: Node | null | undefined): TaggedRef[] {
-    if (node == null) return [];
-    const results: TaggedRef[] = [];
+/**
+ * Walk a yaml v2 Document AST, enforcing default-deny on tags and extracting
+ * the curate-checkable target values from permitted (!Find / !KeyOf) nodes.
+ *
+ * Returns the collected refs and any structural violations found. NEVER throws:
+ * every index access is guarded with isSeq/isScalar/isMap/isPair first, and the
+ * caller additionally wraps this in try/catch.
+ *
+ * Note: yaml v2 uses .items on both YAMLMap (Pair objects) and YAMLSeq (child
+ * nodes). Use the isMap/isSeq/isPair helpers — there is no "pairs" property.
+ */
+function collectTaggedRefs(node: Node | null | undefined): {
+    refs: TaggedRef[];
+    violations: string[];
+} {
+    const refs: TaggedRef[] = [];
+    const violations: string[] = [];
+    if (node == null) return { refs, violations };
 
     function walk(n: Node | null | undefined): void {
         if (n == null) return;
 
-        if (n.tag === "!Find") {
-            // !Find [modelName, [fieldName, targetValue]]
-            const seq = n as YAMLSeq;
-            const inner = seq.items[1];
-            if (inner != null && isSeq(inner)) {
-                const valNode = (inner as YAMLSeq).items[1];
-                if (valNode != null && isScalar(valNode)) {
-                    const s = valNode as Scalar;
-                    if (typeof s.value === "string") {
-                        results.push({ tag: "!Find", targetValue: s.value });
-                    }
-                }
+        const tag = typeof n.tag === "string" ? n.tag : "";
+
+        if (tag !== "") {
+            if (!PERMITTED_TAGS.has(tag)) {
+                // Default-deny: any unrecognized/unsafe tag is a hard reject.
+                violations.push(
+                    `tag "${tag}" is not permitted (only !Find and !KeyOf are allowed)`,
+                );
+                // Do not recurse into the rejected node — its shape is untrusted.
+                return;
             }
-        } else if (n.tag === "!KeyOf") {
-            const sc = n as Scalar;
-            if (typeof sc.value === "string") {
-                results.push({ tag: "!KeyOf", targetValue: sc.value });
+
+            if (tag === "!Find") {
+                extractFind(n);
+                // extractFind already validated the shape and recursed where safe.
+                return;
+            }
+
+            if (tag === "!KeyOf") {
+                if (isScalar(n) && typeof n.value === "string") {
+                    refs.push({ tag: "!KeyOf", targetValue: n.value });
+                } else {
+                    violations.push(
+                        "!KeyOf must be a scalar id referencing an entry in this blueprint",
+                    );
+                }
+                return;
             }
         }
 
-        // Recurse: YAMLMap.items contains Pair objects (key+value)
+        recurse(n);
+    }
+
+    function recurse(n: Node): void {
         if (isMap(n)) {
             for (const pair of n.items) {
-                walk(pair.key as Node);
-                walk(pair.value as Node);
+                if (isPair(pair)) {
+                    walk(pair.key as Node);
+                    walk(pair.value as Node);
+                }
             }
-        }
-        // Recurse: YAMLSeq.items contains child nodes
-        if (isSeq(n)) {
+        } else if (isSeq(n)) {
             for (const item of n.items) {
                 walk(item as Node);
             }
-        }
-        // Recurse: bare Pair (shouldn't appear at top level but handle defensively)
-        if (isPair(n)) {
+        } else if (isPair(n)) {
             walk(n.key as Node);
             walk(n.value as Node);
         }
     }
 
+    /**
+     * Validate and extract a !Find node. The ONLY understood shape mirrors
+     * authentik's `Find.__init__`:
+     *   !Find [ <model>, [field, scalar], [field, scalar], ... ]
+     * - must be a sequence
+     * - first item is the model name (scalar)
+     * - each remaining item is a [field, scalar] pair (a 2-element sequence
+     *   whose value at index 1 is a scalar)
+     * Any deviation is a hard reject; we extract every condition value (all are
+     * AND-combined server-side) so each is curate-checked.
+     */
+    function extractFind(n: Node): void {
+        if (!isSeq(n)) {
+            violations.push("!Find must be a sequence [model, [field, value], ...]");
+            return;
+        }
+        const items = n.items;
+        if (items.length < 2) {
+            violations.push(
+                "!Find must have a model and at least one [field, value] condition",
+            );
+            return;
+        }
+        const modelNode = items[0];
+        if (!(modelNode != null && isScalar(modelNode) && typeof modelNode.value === "string")) {
+            violations.push("!Find model name must be a scalar string");
+            return;
+        }
+        // Each remaining item is a condition: [field, scalar].
+        for (let i = 1; i < items.length; i++) {
+            const cond = items[i];
+            if (!(cond != null && isSeq(cond))) {
+                violations.push(
+                    "!Find condition must be a [field, value] sequence",
+                );
+                return;
+            }
+            if (cond.items.length !== 2) {
+                violations.push(
+                    "!Find condition must be exactly [field, value]",
+                );
+                return;
+            }
+            const valNode = cond.items[1];
+            if (!(valNode != null && isScalar(valNode))) {
+                violations.push(
+                    "!Find condition value must be a scalar",
+                );
+                return;
+            }
+            if (typeof valNode.value !== "string") {
+                violations.push(
+                    "!Find condition value must be a scalar string",
+                );
+                return;
+            }
+            refs.push({ tag: "!Find", targetValue: valNode.value });
+        }
+    }
+
     walk(node);
-    return results;
+    return { refs, violations };
 }
 
 /**
  * Return a violation message if a tagged reference is not curated, or null if
- * it is permitted.
+ * it is permitted. `definedIds` is the set of entry `id`s in this blueprint,
+ * used to validate that a !KeyOf target is self-contained.
  */
-function checkRef(ref: TaggedRef): string | null {
+function checkRef(ref: TaggedRef, definedIds: ReadonlySet<string>): string | null {
     const { targetValue } = ref;
+
+    if (ref.tag === "!KeyOf") {
+        // A !KeyOf target must reference an `id` defined within THIS blueprint.
+        if (definedIds.has(targetValue)) {
+            return null;
+        }
+        return `!KeyOf "${targetValue}" does not reference an entry defined in this blueprint`;
+    }
+
+    // !Find condition value — must resolve to a curated built-in.
+
+    // Excluded scopes are explicitly blocked (checked before the allow-list).
+    if (EXCLUDED_SCOPES.has(targetValue)) {
+        return `external reference "${targetValue}" is not permitted (excluded scope)`;
+    }
 
     // Curated scope mappings (managed field values)
     if (CURATED_REFS.scopeMappings.includes(targetValue as never)) {
         return null;
-    }
-
-    // Excluded scopes are explicitly blocked
-    if (EXCLUDED_SCOPES.has(targetValue)) {
-        return `external reference "${targetValue}" is not permitted (excluded scope)`;
     }
 
     // Curated flows (slug values)
@@ -188,8 +293,14 @@ export function validateBlueprint(content: string): BlueprintValidation {
         return { ok: false, violations, flags };
     }
 
-    // --- Collect all tagged refs from the whole document once ---
-    // We'll also check per-entry attrs for !Find/!KeyOf nodes.
+    // --- Collect the set of entry `id`s for self-contained !KeyOf checks ---
+    const definedIds = new Set<string>();
+    for (const entry of entries) {
+        const id = (entry as { id?: unknown })?.id;
+        if (typeof id === "string" && id !== "") {
+            definedIds.add(id);
+        }
+    }
 
     entries.forEach((entry: unknown, i: number) => {
         const raw = entry as Record<string, unknown>;
@@ -271,12 +382,12 @@ export function validateBlueprint(content: string): BlueprintValidation {
                 }
 
                 case "cap": {
-                    // Value must be a number ≤ maxSeconds
+                    // Value must be a non-negative number ≤ maxSeconds.
                     const maxSec = rule.maxSeconds ?? Infinity;
                     const num = parseTokenDuration(val);
-                    if (num === null || num > maxSec) {
+                    if (num === null || num < 0 || num > maxSec) {
                         violations.push(
-                            `entry ${i}: attribute "${key}" exceeds the maximum allowed value of ${maxSec}s`,
+                            `entry ${i}: attribute "${key}" must be a non-negative value of at most ${maxSec}s`,
                         );
                     }
                     break;
@@ -286,14 +397,25 @@ export function validateBlueprint(content: string): BlueprintValidation {
     });
 
     // --- Tagged reference checking: walk the full document AST ---
-    if (pdoc.contents != null) {
-        const refs = collectTaggedRefs(pdoc.contents as Node);
-        for (const ref of refs) {
-            const msg = checkRef(ref);
-            if (msg !== null) {
-                violations.push(msg);
+    // Default-deny on tags. Never throw on hostile/malformed input: any error
+    // becomes a violation, never an exception.
+    try {
+        if (pdoc.contents != null) {
+            const { refs, violations: tagViolations } = collectTaggedRefs(
+                pdoc.contents as Node,
+            );
+            violations.push(...tagViolations);
+            for (const ref of refs) {
+                const msg = checkRef(ref, definedIds);
+                if (msg !== null) {
+                    violations.push(msg);
+                }
             }
         }
+    } catch (err) {
+        violations.push(
+            `tag validation failed: ${(err as Error).message ?? String(err)}`,
+        );
     }
 
     return { ok: violations.length === 0, violations, flags };
@@ -317,12 +439,14 @@ function parseTokenDuration(val: unknown): number | null {
         const match = /^(\d+)$/.exec(val.trim());
         if (match) return parseInt(match[1]!, 10);
 
-        // Parse "key=value;key=value" style
+        // Parse "key=value;key=value" style. Any unrecognized unit (or any
+        // unparseable part) rejects the whole value — never silently ignore.
         let total = 0;
         let parsed = false;
         for (const part of val.split(";")) {
+            if (part.trim() === "") continue; // tolerate trailing/empty segments
             const kv = /^\s*(\w+)\s*=\s*(\d+)\s*$/.exec(part.trim());
-            if (!kv) continue;
+            if (!kv) return null;
             const [, unit, amount] = kv;
             parsed = true;
             const n = parseInt(amount!, 10);
@@ -332,6 +456,7 @@ function parseTokenDuration(val: unknown): number | null {
                 case "hours":   total += n * 3600; break;
                 case "days":    total += n * 86400; break;
                 case "weeks":   total += n * 604800; break;
+                default: return null; // unknown unit → reject
             }
         }
         return parsed ? total : null;
