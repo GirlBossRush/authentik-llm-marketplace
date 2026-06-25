@@ -64,7 +64,7 @@ async function main(): Promise<void> {
 
     tool<{ content: string }>(
         "validate_blueprint",
-        "Validate a proposed authentik Blueprint (YAML) WITHOUT applying it. Returns {ok, violations}. This server is propose-only: it never mutates the instance. Rejects denied models (tokens, users, groups, roles, crypto), the !Env tag, and explicit secret fields. Hand the operator the validated blueprint to apply themselves.",
+        "Validate a proposed authentik Blueprint (YAML) WITHOUT applying it. Returns {ok, violations, flags}. This server is propose-only: it never mutates the instance. The validator is an allow-list policy gate — only the onboarding models (Application, OAuth2 Provider, SAML Provider) and an explicit per-attribute allow-list pass; every YAML tag except curated !Find/!KeyOf references to built-ins is rejected, so expressions, secrets, and security-surface changes are inexpressible. For the apply handoff (diff, undo snapshot, irreversible flags, apply command) use prepare_apply.",
         { content: z.string() },
         async (args) => asContent(tools.validate(args)),
     );
