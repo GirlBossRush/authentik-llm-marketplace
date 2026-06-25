@@ -36,7 +36,7 @@ test("search returns matching operations", () => {
         config: { baseURL: "http://x", token: "t" },
     });
     const { operations } = tools.search({ query: "list users" });
-    assert.ok(operations.some((o) => o.operationId === "core_users_list"));
+    assert.ok(operations.some((o) => o.operationID === "core_users_list"));
 });
 
 test("execute runs read-only code", async () => {

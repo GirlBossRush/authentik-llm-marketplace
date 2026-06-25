@@ -35,11 +35,17 @@ export const EXCLUDED_SCOPES: ReadonlySet<string> = new Set([
 
 const TOKEN_MAX = 60 * 60 * 24; // 24h cap; adjust to admin global max when that exists (v3)
 
-export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRule>>>> = {
+export const MODEL_ATTRS: Readonly<
+    Record<string, Readonly<Record<string, AttrRule>>>
+> = {
     "authentik_core.application": {
-        name: { bin: "pass" }, slug: { bin: "pass" }, group: { bin: "pass" },
-        meta_launch_url: { bin: "pass" }, meta_description: { bin: "pass" },
-        meta_publisher: { bin: "pass" }, meta_icon: { bin: "pass" },
+        name: { bin: "pass" },
+        slug: { bin: "pass" },
+        group: { bin: "pass" },
+        meta_launch_url: { bin: "pass" },
+        meta_description: { bin: "pass" },
+        meta_publisher: { bin: "pass" },
+        meta_icon: { bin: "pass" },
         // The provider binding MUST be a permitted reference (a !KeyOf to a
         // provider defined in this blueprint, or a curated !Find). `policies`
         // bindings remain disallowed (not listed). See the validator's ref check.
@@ -64,7 +70,9 @@ export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRu
     },
     "authentik_providers_saml.samlprovider": {
         name: { bin: "pass" },
-        acs_url: { bin: "flag" }, audience: { bin: "flag" }, sp_binding: { bin: "flag" },
+        acs_url: { bin: "flag" },
+        audience: { bin: "flag" },
+        sp_binding: { bin: "flag" },
         // Field names confirmed against authentik's SAMLProviderSerializer /
         // ProviderSerializer: authorization_flow + invalidation_flow (base),
         // signing_kp (the signing keypair), property_mappings.
@@ -76,6 +84,9 @@ export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRu
 };
 
 /** A blueprint entry that deletes any model or touches crypto is irreversible. */
-export function isDestructiveEntry(model: string, state: string | undefined): boolean {
+export function isDestructiveEntry(
+    model: string,
+    state: string | undefined,
+): boolean {
     return state === "absent" || model.startsWith("authentik_crypto.");
 }

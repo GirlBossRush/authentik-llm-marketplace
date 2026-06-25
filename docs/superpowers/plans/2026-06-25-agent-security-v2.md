@@ -34,11 +34,13 @@
 ### Task 1: Policy data module
 
 **Files:**
+
 - Create: `mcp-servers/code-mode/lib/blueprint-policy.ts`
 - Test: `mcp-servers/code-mode/test/blueprint-policy.test.ts`
 - Read for exact enum values: `/Users/teffen/Projects/authentik/authentik/providers/oauth2/api/providers.py` and `.../saml/api/providers.py` (forced-default enum values for `sub_mode`, `issuer_mode`; lifetime field names) — encode the verified literals; do not guess.
 
 **Interfaces:**
+
 - Produces: `ALLOWED_MODELS: ReadonlySet<string>`; `type AttrBin = "pass"|"flag"|"force"|"cap"`; `interface AttrRule { bin: AttrBin; value?: unknown; maxSeconds?: number }`; `MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRule>>>>`; `CURATED_REFS` (flows by slug, default key `!Find` target name, scope mappings by managed key); `EXCLUDED_SCOPES: ReadonlySet<string>`; `DESTRUCTIVE_MODEL_PREFIXES`/`isDestructiveEntry`.
 
 - [ ] **Step 1: Confirm forced-default enum values** — read the two serializer files above; record the exact values for `sub_mode` (e.g. the hashed option), `issuer_mode`, and the lifetime field names (`access_code_validity`, `token_validity`, refresh). These literals are encoded in this module and nowhere else.
@@ -48,7 +50,12 @@
 ```ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ALLOWED_MODELS, MODEL_ATTRS, CURATED_REFS, EXCLUDED_SCOPES } from "#blueprint-policy";
+import {
+    ALLOWED_MODELS,
+    MODEL_ATTRS,
+    CURATED_REFS,
+    EXCLUDED_SCOPES,
+} from "#blueprint-policy";
 
 test("only the three onboarding models are allowed", () => {
     assert.deepEqual([...ALLOWED_MODELS].sort(), [
@@ -61,13 +68,29 @@ test("only the three onboarding models are allowed", () => {
 test("curated scopes include the standard four and EXCLUDE authentik_api", () => {
     const curated = CURATED_REFS.scopeMappings;
     assert.ok(curated.includes("goauthentik.io/providers/oauth2/scope-openid"));
-    assert.ok(curated.includes("goauthentik.io/providers/oauth2/scope-offline_access"));
-    assert.ok(!curated.includes("goauthentik.io/providers/oauth2/scope-authentik_api"));
-    assert.ok(EXCLUDED_SCOPES.has("goauthentik.io/providers/oauth2/scope-authentik_api"));
+    assert.ok(
+        curated.includes(
+            "goauthentik.io/providers/oauth2/scope-offline_access",
+        ),
+    );
+    assert.ok(
+        !curated.includes(
+            "goauthentik.io/providers/oauth2/scope-authentik_api",
+        ),
+    );
+    assert.ok(
+        EXCLUDED_SCOPES.has(
+            "goauthentik.io/providers/oauth2/scope-authentik_api",
+        ),
+    );
 });
 
 test("curated flow is explicit-consent, not implicit", () => {
-    assert.ok(CURATED_REFS.flows.includes("default-provider-authorization-explicit-consent"));
+    assert.ok(
+        CURATED_REFS.flows.includes(
+            "default-provider-authorization-explicit-consent",
+        ),
+    );
     assert.ok(!CURATED_REFS.flows.some((f) => f.includes("implicit-consent")));
 });
 
@@ -122,11 +145,17 @@ export const EXCLUDED_SCOPES: ReadonlySet<string> = new Set([
 
 const TOKEN_MAX = 60 * 60 * 24; // 24h cap; adjust to admin global max when that exists (v3)
 
-export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRule>>>> = {
+export const MODEL_ATTRS: Readonly<
+    Record<string, Readonly<Record<string, AttrRule>>>
+> = {
     "authentik_core.application": {
-        name: { bin: "pass" }, slug: { bin: "pass" }, group: { bin: "pass" },
-        meta_launch_url: { bin: "pass" }, meta_description: { bin: "pass" },
-        meta_publisher: { bin: "pass" }, meta_icon: { bin: "pass" },
+        name: { bin: "pass" },
+        slug: { bin: "pass" },
+        group: { bin: "pass" },
+        meta_launch_url: { bin: "pass" },
+        meta_description: { bin: "pass" },
+        meta_publisher: { bin: "pass" },
+        meta_icon: { bin: "pass" },
         // `provider` reference + `policies` binding are handled by reference rules (validator).
     },
     "authentik_providers_oauth2.oauth2provider": {
@@ -143,15 +172,24 @@ export const MODEL_ATTRS: Readonly<Record<string, Readonly<Record<string, AttrRu
     },
     "authentik_providers_saml.samlprovider": {
         name: { bin: "pass" },
-        acs_url: { bin: "flag" }, audience: { bin: "flag" }, sp_binding: { bin: "flag" },
+        acs_url: { bin: "flag" },
+        audience: { bin: "flag" },
+        sp_binding: { bin: "flag" },
         // signing_kp / property_mappings handled by reference rules
     },
 };
 
-export const DESTRUCTIVE_MODEL_PREFIXES = ["authentik_crypto.", "authentik_sources_", "authentik_providers_"];
+export const DESTRUCTIVE_MODEL_PREFIXES = [
+    "authentik_crypto.",
+    "authentik_sources_",
+    "authentik_providers_",
+];
 
 /** A blueprint entry that deletes a source/provider or touches crypto is irreversible. */
-export function isDestructiveEntry(model: string, state: string | undefined): boolean {
+export function isDestructiveEntry(
+    model: string,
+    state: string | undefined,
+): boolean {
     if (state === "absent") return true;
     return model.startsWith("authentik_crypto.");
 }
@@ -168,10 +206,12 @@ export function isDestructiveEntry(model: string, state: string | undefined): bo
 ### Task 2: Validator = policy-enforcement point
 
 **Files:**
+
 - Modify (rewrite): `mcp-servers/code-mode/lib/blueprint-validate.ts`
 - Test: `mcp-servers/code-mode/test/blueprint-validate.test.ts` (expand)
 
 **Interfaces:**
+
 - Consumes: everything from `#blueprint-policy`.
 - Produces: `interface BlueprintValidation { ok: boolean; violations: string[]; flags: FlagItem[] }` where `interface FlagItem { entryIndex: number; model: string; attr: string; value: unknown }`; `validateBlueprint(content: string): BlueprintValidation`.
 
@@ -273,10 +313,13 @@ entries:
 });
 
 test("rejects non-object attrs", () => {
-    assert.equal(validateBlueprint(`version: 1
+    assert.equal(
+        validateBlueprint(`version: 1
 entries:
   - model: authentik_core.application
-    attrs: "oops"`).ok, false);
+    attrs: "oops"`).ok,
+        false,
+    );
 });
 
 test("normalizes model case before allow-list lookup", () => {
@@ -291,14 +334,14 @@ entries:
 - [ ] **Step 2: Run tests to verify they fail** — `node --test test/blueprint-validate.test.ts` → FAIL.
 
 - [ ] **Step 3: Implement** (`lib/blueprint-validate.ts`) — full rewrite. Key logic (write complete code):
-  - Detect multi-doc by scanning for a top-level `\n---` document separator (authentik uses single-doc `load`); if present → violation, return.
-  - Parse with `yaml`'s `parse(content, { logLevel: "silent" })`. Wrap in try/catch → "unparseable" violation.
-  - Require `entries` to be an array.
-  - For each entry: case-normalize `model` (`.toLowerCase()`), check `ALLOWED_MODELS` (reject if absent). Require `attrs` is a plain object (reject non-object). 
-  - For each attr key in `attrs`: look up `MODEL_ATTRS[model][key]`. If absent → BLOCK violation ("attribute not permitted"). Else by bin: `force` → value must deep-equal rule.value else violation; `cap` → numeric ≤ maxSeconds else violation; `flag` → push to `flags`; `pass` → ok.
-  - Reference handling: walk attr values for authentik tag nodes (`!Find`/`!KeyOf` — `yaml` represents unresolved tags; detect via the parsed node's `tag` or a raw-text pre-scan). A `!Find`/`!KeyOf` is permitted ONLY if it targets a curated ref: a flow in `CURATED_REFS.flows`, the default key by name, or a scope mapping in `CURATED_REFS.scopeMappings`. Any other external reference → BLOCK. (Implementation note: easiest robust approach is a raw-text scan combined with the parsed structure — extract every `!Find`/`!KeyOf [...]` and check its target literal against the curated lists; reject if it names `managed`/`slug`/`name` values not in the curated set.)
-  - `policies` / any relationship attr not in the model's allow-list is already BLOCKed by the per-attr allow-list (it won't be a listed key) — keep an explicit test (above) so this stays true.
-  - Return `{ ok: violations.length === 0, violations, flags }`.
+    - Detect multi-doc by scanning for a top-level `\n---` document separator (authentik uses single-doc `load`); if present → violation, return.
+    - Parse with `yaml`'s `parse(content, { logLevel: "silent" })`. Wrap in try/catch → "unparseable" violation.
+    - Require `entries` to be an array.
+    - For each entry: case-normalize `model` (`.toLowerCase()`), check `ALLOWED_MODELS` (reject if absent). Require `attrs` is a plain object (reject non-object).
+    - For each attr key in `attrs`: look up `MODEL_ATTRS[model][key]`. If absent → BLOCK violation ("attribute not permitted"). Else by bin: `force` → value must deep-equal rule.value else violation; `cap` → numeric ≤ maxSeconds else violation; `flag` → push to `flags`; `pass` → ok.
+    - Reference handling: walk attr values for authentik tag nodes (`!Find`/`!KeyOf` — `yaml` represents unresolved tags; detect via the parsed node's `tag` or a raw-text pre-scan). A `!Find`/`!KeyOf` is permitted ONLY if it targets a curated ref: a flow in `CURATED_REFS.flows`, the default key by name, or a scope mapping in `CURATED_REFS.scopeMappings`. Any other external reference → BLOCK. (Implementation note: easiest robust approach is a raw-text scan combined with the parsed structure — extract every `!Find`/`!KeyOf [...]` and check its target literal against the curated lists; reject if it names `managed`/`slug`/`name` values not in the curated set.)
+    - `policies` / any relationship attr not in the model's allow-list is already BLOCKed by the per-attr allow-list (it won't be a listed key) — keep an explicit test (above) so this stays true.
+    - Return `{ ok: violations.length === 0, violations, flags }`.
 
 - [ ] **Step 4: Run tests to verify they pass** — `node --test test/blueprint-validate.test.ts` → PASS; `npx tsc --noEmit` → clean.
 
@@ -309,9 +352,11 @@ entries:
 ### Task 3: Trusted diff
 
 **Files:**
+
 - Create: `lib/blueprint-diff.ts`; Test: `test/blueprint-diff.test.ts`
 
 **Interfaces:**
+
 - Consumes: an `Ak` read client (`#client`, `ak.request("GET", ...)`).
 - Produces: `interface DiffObject { model: string; identifier: string; status: "create"|"update"|"unchanged"; changedFields?: Record<string,{from:unknown;to:unknown}>; unexpected?: boolean }`; `interface BlueprintDiff { objects: DiffObject[] }`; `computeDiff(entries: ParsedEntry[], ak: Ak): Promise<BlueprintDiff>`.
 
@@ -322,15 +367,29 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { computeDiff } from "#blueprint-diff";
 
-const ak = { request: async (_m: string, path: string) => {
-    if (path.includes("/applications/")) return { status: 200, data: { results: [{ slug: "grafana", name: "Old" }] } };
-    return { status: 200, data: { results: [] } };
-}};
+const ak = {
+    request: async (_m: string, path: string) => {
+        if (path.includes("/applications/"))
+            return {
+                status: 200,
+                data: { results: [{ slug: "grafana", name: "Old" }] },
+            };
+        return { status: 200, data: { results: [] } };
+    },
+};
 
 test("diff returns one object per entry, marks create vs update", async () => {
     const entries = [
-        { model: "authentik_core.application", identifiers: { slug: "grafana" }, attrs: { name: "New" } },
-        { model: "authentik_core.application", identifiers: { slug: "brandnew" }, attrs: { name: "Brand New" } },
+        {
+            model: "authentik_core.application",
+            identifiers: { slug: "grafana" },
+            attrs: { name: "New" },
+        },
+        {
+            model: "authentik_core.application",
+            identifiers: { slug: "brandnew" },
+            attrs: { name: "Brand New" },
+        },
     ];
     const d = await computeDiff(entries as any, ak as any);
     assert.equal(d.objects.length, 2); // full list, nothing hidden
@@ -351,25 +410,46 @@ test("diff returns one object per entry, marks create vs update", async () => {
 ### Task 4: Undo snapshot + reversibility classification
 
 **Files:**
+
 - Create: `lib/blueprint-undo.ts`; Test: `test/blueprint-undo.test.ts`
 
 **Interfaces:**
+
 - Produces: `type Reversibility = "clean"|"lossy"|"impossible"`; `interface UndoSnapshot { blueprint: string; reversibility: Reversibility; notes: string[] }`; `buildUndoSnapshot(entries: ParsedEntry[], ak: Ak): Promise<UndoSnapshot>`.
 
 - [ ] **Step 1: Write the failing test** (mock `ak`): an update to an existing object → `clean`, snapshot YAML contains the object's CURRENT state; a `state: absent` (delete) entry → `impossible` with a note; a create-only entry → reversible by deletion noted as `lossy` (recreate churns UUID).
 
 ```ts
 test("undo snapshot captures current state for updates (clean)", async () => {
-    const ak = { request: async () => ({ status: 200, data: { results: [{ slug: "grafana", name: "Old" }] } }) };
-    const entries = [{ model: "authentik_core.application", identifiers: { slug: "grafana" }, attrs: { name: "New" } }];
+    const ak = {
+        request: async () => ({
+            status: 200,
+            data: { results: [{ slug: "grafana", name: "Old" }] },
+        }),
+    };
+    const entries = [
+        {
+            model: "authentik_core.application",
+            identifiers: { slug: "grafana" },
+            attrs: { name: "New" },
+        },
+    ];
     const u = await buildUndoSnapshot(entries as any, ak as any);
     assert.equal(u.reversibility, "clean");
     assert.match(u.blueprint, /name: Old/);
 });
 
 test("delete entries are classified impossible", async () => {
-    const ak = { request: async () => ({ status: 200, data: { results: [] } }) };
-    const entries = [{ model: "authentik_sources_oauth.oauthsource", state: "absent", identifiers: { slug: "x" } }];
+    const ak = {
+        request: async () => ({ status: 200, data: { results: [] } }),
+    };
+    const entries = [
+        {
+            model: "authentik_sources_oauth.oauthsource",
+            state: "absent",
+            identifiers: { slug: "x" },
+        },
+    ];
     const u = await buildUndoSnapshot(entries as any, ak as any);
     assert.equal(u.reversibility, "impossible");
     assert.ok(u.notes.some((n) => /cannot be undone|external/i.test(n)));
@@ -385,9 +465,11 @@ test("delete entries are classified impossible", async () => {
 ### Task 5: Prepare-apply orchestrator (irreversible flag + handoff)
 
 **Files:**
+
 - Create: `lib/blueprint-prepare.ts`; Test: `test/blueprint-prepare.test.ts`
 
 **Interfaces:**
+
 - Consumes: `validateBlueprint` (#blueprint-validate), `computeDiff` (#blueprint-diff), `buildUndoSnapshot` (#blueprint-undo), `isDestructiveEntry` (#blueprint-policy), an `Ak` read client.
 - Produces: `interface PrepareResult { ok: boolean; violations: string[]; flags: FlagItem[]; diff?: BlueprintDiff; undo?: UndoSnapshot; destructive: boolean; applyCommand: string; notice: string }`; `prepareApply(content: string, ak: Ak): Promise<PrepareResult>`.
 
@@ -395,21 +477,31 @@ test("delete entries are classified impossible", async () => {
 
 ```ts
 test("invalid blueprint returns violations and no apply artifacts", async () => {
-    const r = await prepareApply(`version: 1
+    const r = await prepareApply(
+        `version: 1
 entries:
   - model: authentik_policies_expression.expressionpolicy
-    attrs: {name: x}`, { request: async () => ({status:200,data:{results:[]}}) } as any);
+    attrs: {name: x}`,
+        {
+            request: async () => ({ status: 200, data: { results: [] } }),
+        } as any,
+    );
     assert.equal(r.ok, false);
     assert.equal(r.diff, undefined);
     assert.equal(r.applyCommand, "");
 });
 
 test("valid blueprint yields diff+undo+honest notice, never auto-applies", async () => {
-    const ak = { request: async () => ({ status: 200, data: { results: [] } }) };
-    const r = await prepareApply(`version: 1
+    const ak = {
+        request: async () => ({ status: 200, data: { results: [] } }),
+    };
+    const r = await prepareApply(
+        `version: 1
 entries:
   - model: authentik_core.application
-    attrs: {name: Grafana, slug: grafana}`, ak as any);
+    attrs: {name: Grafana, slug: grafana}`,
+        ak as any,
+    );
     assert.equal(r.ok, true);
     assert.ok(r.diff && r.undo);
     assert.match(r.applyCommand, /ak apply_blueprint/);
@@ -426,12 +518,14 @@ entries:
 ### Task 6: Wire the `prepare_apply` tool; assert no apply credential
 
 **Files:**
+
 - Modify: `lib/tools.ts`, `lib/index.ts`; Test: `test/tools.test.ts`, `test/index.smoke.test.ts`
 
 **Interfaces:**
+
 - Consumes: `prepareApply`. Produces: `createTools(...)` returns `{ search, execute, validate, prepare }`; MCP tools = `search`, `execute`, `validate_blueprint`, `prepare_apply`, `docs`.
 
-- [ ] **Step 1: Write/extend tests:** `tools.test.ts` asserts `tools.prepare` exists and calls through to a read-only `ak`; `index.smoke.test.ts` asserts tools/list includes `prepare_apply` and that NO tool name matches `/apply_write|execute_write|write/` and the server still constructs its `ak` read-only (no write/apply token env consumed). 
+- [ ] **Step 1: Write/extend tests:** `tools.test.ts` asserts `tools.prepare` exists and calls through to a read-only `ak`; `index.smoke.test.ts` asserts tools/list includes `prepare_apply` and that NO tool name matches `/apply_write|execute_write|write/` and the server still constructs its `ak` read-only (no write/apply token env consumed).
 
 - [ ] **Step 2-4:** Run→fail; implement: in `tools.ts` add `const prepare = ({ content }) => prepareApply(content, createAk(config, { allowWrites: false }))` and return it; in `index.ts` register the `prepare_apply` tool (`{ content: z.string() }`, description: "Validate a proposed blueprint and PREPARE it for the operator to apply: returns a trusted diff, an undo snapshot, irreversible-op flags, and the exact `ak apply_blueprint` command. This server never applies changes itself."). Run→pass (full suite); `tsc` clean.
 

@@ -1,6 +1,14 @@
 /** @file Validate a proposed authentik Blueprint without applying it (v2 policy-enforcement point). */
 
-import { parseDocument, isMap, isSeq, isPair, isScalar, type Document, type Node } from "yaml";
+import {
+    parseDocument,
+    isMap,
+    isSeq,
+    isPair,
+    isScalar,
+    type Document,
+    type Node,
+} from "yaml";
 
 import {
     ALLOWED_MODELS,
@@ -75,8 +83,7 @@ function collectTaggedRefs(node: Node | null | undefined): {
 
     /** The resolved YAML tag on a node, or "" if untagged/absent. */
     function nodeTag(n: unknown): string {
-        return n != null &&
-            typeof (n as { tag?: unknown }).tag === "string"
+        return n != null && typeof (n as { tag?: unknown }).tag === "string"
             ? (n as { tag: string }).tag
             : "";
     }
@@ -148,7 +155,9 @@ function collectTaggedRefs(node: Node | null | undefined): {
      */
     function extractFind(n: Node): void {
         if (!isSeq(n)) {
-            violations.push("!Find must be a sequence [model, [field, value], ...]");
+            violations.push(
+                "!Find must be a sequence [model, [field, value], ...]",
+            );
             return;
         }
         const items = n.items;
@@ -171,7 +180,13 @@ function collectTaggedRefs(node: Node | null | undefined): {
             );
             return;
         }
-        if (!(modelNode != null && isScalar(modelNode) && typeof modelNode.value === "string")) {
+        if (
+            !(
+                modelNode != null &&
+                isScalar(modelNode) &&
+                typeof modelNode.value === "string"
+            )
+        ) {
             violations.push("!Find model name must be a scalar string");
             return;
         }
@@ -205,16 +220,20 @@ function collectTaggedRefs(node: Node | null | undefined): {
                 );
                 return;
             }
-            if (!(fieldNode != null && isScalar(fieldNode) && typeof fieldNode.value === "string")) {
+            if (
+                !(
+                    fieldNode != null &&
+                    isScalar(fieldNode) &&
+                    typeof fieldNode.value === "string"
+                )
+            ) {
                 violations.push(
                     "!Find condition field must be a scalar string",
                 );
                 return;
             }
             if (!(valNode != null && isScalar(valNode))) {
-                violations.push(
-                    "!Find condition value must be a scalar",
-                );
+                violations.push("!Find condition value must be a scalar");
                 return;
             }
             if (typeof valNode.value !== "string") {
@@ -233,15 +252,18 @@ function collectTaggedRefs(node: Node | null | undefined): {
 
 /**
  * Return a violation message if a tagged reference is not curated, or null if
- * it is permitted. `definedIds` is the set of entry `id`s in this blueprint,
+ * it is permitted. `definedIDs` is the set of entry `id`s in this blueprint,
  * used to validate that a !KeyOf target is self-contained.
  */
-function checkRef(ref: TaggedRef, definedIds: ReadonlySet<string>): string | null {
+function checkRef(
+    ref: TaggedRef,
+    definedIDs: ReadonlySet<string>,
+): string | null {
     const { targetValue } = ref;
 
     if (ref.tag === "!KeyOf") {
         // A !KeyOf target must reference an `id` defined within THIS blueprint.
-        if (definedIds.has(targetValue)) {
+        if (definedIDs.has(targetValue)) {
             return null;
         }
         return `!KeyOf "${targetValue}" does not reference an entry defined in this blueprint`;
@@ -288,7 +310,11 @@ function attrValueNode(
     if (contents == null || !isMap(contents)) return null;
     let entriesNode: Node | null = null;
     for (const pair of contents.items) {
-        if (isPair(pair) && isScalar(pair.key) && pair.key.value === "entries") {
+        if (
+            isPair(pair) &&
+            isScalar(pair.key) &&
+            pair.key.value === "entries"
+        ) {
             entriesNode = (pair.value as Node) ?? null;
             break;
         }
@@ -346,7 +372,10 @@ function checkRefAttr(node: Node | null): string | null {
                 item != null && typeof (item as Node).tag === "string"
                     ? (item as Node).tag
                     : "";
-            if (typeof itemTag !== "string" || !REF_PERMITTED_TAGS.has(itemTag)) {
+            if (
+                typeof itemTag !== "string" ||
+                !REF_PERMITTED_TAGS.has(itemTag)
+            ) {
                 return "every reference in the list must be a permitted reference (a curated !Find or an in-blueprint !KeyOf), not a plain literal";
             }
         }
@@ -418,18 +447,18 @@ export function validateBlueprint(content: string): BlueprintValidation {
     }
 
     // --- Collect the set of entry `id`s for self-contained !KeyOf checks ---
-    const definedIds = new Set<string>();
+    const definedIDs = new Set<string>();
     for (const entry of entries) {
         const id = (entry as { id?: unknown })?.id;
         if (typeof id === "string" && id !== "") {
-            definedIds.add(id);
+            definedIDs.add(id);
         }
     }
 
     entries.forEach((entry: unknown, i: number) => {
         const raw = entry as Record<string, unknown>;
 
-        const rawModel = typeof raw?.["model"] === "string" ? raw["model"] : "";
+        const rawModel = typeof raw?.model === "string" ? raw.model : "";
         if (!rawModel) {
             violations.push(`entry ${i}: missing model`);
             return;
@@ -447,7 +476,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
         }
 
         // --- attrs must be a plain object ---
-        const rawAttrs = raw["attrs"];
+        const rawAttrs = raw.attrs;
         if (
             rawAttrs === null ||
             typeof rawAttrs !== "object" ||
@@ -508,7 +537,11 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         i,
                         key,
                     );
-                    if (fnode != null && typeof fnode.tag === "string" && fnode.tag !== "") {
+                    if (
+                        fnode != null &&
+                        typeof fnode.tag === "string" &&
+                        fnode.tag !== ""
+                    ) {
                         violations.push(
                             `entry ${i}: attribute "${key}" must be a plain untagged literal (a forced/capped attribute may not be a reference), got tag "${fnode.tag}"`,
                         );
@@ -535,7 +568,9 @@ export function validateBlueprint(content: string): BlueprintValidation {
                     );
                     const msg = checkRefAttr(refNode);
                     if (msg !== null) {
-                        violations.push(`entry ${i}: attribute "${key}" ${msg}`);
+                        violations.push(
+                            `entry ${i}: attribute "${key}" ${msg}`,
+                        );
                     }
                     break;
                 }
@@ -551,7 +586,11 @@ export function validateBlueprint(content: string): BlueprintValidation {
                         i,
                         key,
                     );
-                    if (cnode != null && typeof cnode.tag === "string" && cnode.tag !== "") {
+                    if (
+                        cnode != null &&
+                        typeof cnode.tag === "string" &&
+                        cnode.tag !== ""
+                    ) {
                         violations.push(
                             `entry ${i}: attribute "${key}" must be a plain untagged literal (a forced/capped attribute may not be a reference), got tag "${cnode.tag}"`,
                         );
@@ -581,7 +620,7 @@ export function validateBlueprint(content: string): BlueprintValidation {
             );
             violations.push(...tagViolations);
             for (const ref of refs) {
-                const msg = checkRef(ref, definedIds);
+                const msg = checkRef(ref, definedIDs);
                 if (msg !== null) {
                     violations.push(msg);
                 }
@@ -626,12 +665,23 @@ function parseTokenDuration(val: unknown): number | null {
             parsed = true;
             const n = parseInt(amount!, 10);
             switch (unit) {
-                case "seconds": total += n; break;
-                case "minutes": total += n * 60; break;
-                case "hours":   total += n * 3600; break;
-                case "days":    total += n * 86400; break;
-                case "weeks":   total += n * 604800; break;
-                default: return null; // unknown unit → reject
+                case "seconds":
+                    total += n;
+                    break;
+                case "minutes":
+                    total += n * 60;
+                    break;
+                case "hours":
+                    total += n * 3600;
+                    break;
+                case "days":
+                    total += n * 86400;
+                    break;
+                case "weeks":
+                    total += n * 604800;
+                    break;
+                default:
+                    return null; // unknown unit → reject
             }
         }
         return parsed ? total : null;

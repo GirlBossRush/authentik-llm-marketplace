@@ -8,7 +8,9 @@ test("invalid blueprint returns violations and no apply artifacts", async () => 
 entries:
   - model: authentik_policies_expression.expressionpolicy
     attrs: {name: x}`,
-        { request: async () => ({ status: 200, data: { results: [] } }) } as never,
+        {
+            request: async () => ({ status: 200, data: { results: [] } }),
+        } as never,
     );
     assert.equal(r.ok, false);
     assert.ok(r.violations.length > 0);
@@ -20,7 +22,9 @@ entries:
 });
 
 test("valid blueprint yields diff+undo+honest notice, never auto-applies", async () => {
-    const ak = { request: async () => ({ status: 200, data: { results: [] } }) };
+    const ak = {
+        request: async () => ({ status: 200, data: { results: [] } }),
+    };
     const r = await prepareApply(
         `version: 1
 entries:
@@ -61,7 +65,9 @@ test("destructive entry steers to manual host CLI and omits smooth command", asy
     // A `state: absent` entry on an allowed model is mechanically valid but a
     // destructive delete: destructive=true, applyCommand empty, notice steers
     // to the manual host-CLI path.
-    const ak = { request: async () => ({ status: 200, data: { results: [] } }) };
+    const ak = {
+        request: async () => ({ status: 200, data: { results: [] } }),
+    };
     const r = await prepareApply(
         `version: 1
 entries:
@@ -80,7 +86,9 @@ entries:
 });
 
 test("notice carries the full honesty text on the happy path", async () => {
-    const ak = { request: async () => ({ status: 200, data: { results: [] } }) };
+    const ak = {
+        request: async () => ({ status: 200, data: { results: [] } }),
+    };
     const r = await prepareApply(
         `version: 1
 entries:

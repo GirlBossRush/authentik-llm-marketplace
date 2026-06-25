@@ -151,7 +151,11 @@ function extractResults(data: unknown): Record<string, unknown>[] {
 function hasMorePages(data: unknown): boolean {
     if (data && typeof data === "object" && "pagination" in data) {
         const pagination = (data as { pagination: unknown }).pagination;
-        if (pagination && typeof pagination === "object" && "next" in pagination) {
+        if (
+            pagination &&
+            typeof pagination === "object" &&
+            "next" in pagination
+        ) {
             const next = (pagination as { next: unknown }).next;
             if (typeof next === "number") return next > 0;
             // DRF's default paginator uses a URL string for `next`.
@@ -273,9 +277,7 @@ export async function computeDiff(
                 model: entry.model,
                 identifier,
                 status: "create",
-                ...(result.kind === "unconfirmed"
-                    ? { unexpected: true }
-                    : {}),
+                ...(result.kind === "unconfirmed" ? { unexpected: true } : {}),
             });
             continue;
         }

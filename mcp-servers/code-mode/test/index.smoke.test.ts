@@ -95,7 +95,9 @@ test("server constructs its ak read-only: no write/apply token env is consumed",
     // healthy (its single token is used read-only by createAk(allowWrites:false)).
     const inst = createServer((_req, res) => {
         res.setHeader("content-type", "application/json");
-        res.end(JSON.stringify({ openapi: "3.0.3", paths: {}, components: {} }));
+        res.end(
+            JSON.stringify({ openapi: "3.0.3", paths: {}, components: {} }),
+        );
     });
     await new Promise<void>((r) => inst.listen(0, () => r()));
     const { port } = inst.address() as AddressInfo;

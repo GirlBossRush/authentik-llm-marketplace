@@ -57,10 +57,7 @@ test("rejects explicit secret fields", () => {
 entries:
   - model: authentik_providers_oauth2.oauth2provider
     attrs: {name: p, client_secret: hunter2}`;
-    assert.match(
-        validateBlueprint(bp).violations.join(" "),
-        /client_secret/,
-    );
+    assert.match(validateBlueprint(bp).violations.join(" "), /client_secret/);
 });
 
 test("rejects documents with no entries list", () => {
@@ -165,10 +162,13 @@ entries:
 });
 
 test("rejects non-object attrs", () => {
-    assert.equal(validateBlueprint(`version: 1
+    assert.equal(
+        validateBlueprint(`version: 1
 entries:
   - model: authentik_core.application
-    attrs: "oops"`).ok, false);
+    attrs: "oops"`).ok,
+        false,
+    );
 });
 
 test("normalizes model case before allow-list lookup", () => {
@@ -514,7 +514,10 @@ entries:
   - model: authentik_providers_oauth2.oauth2provider
     attrs: {name: x, issuer_mode: !KeyOf per_provider}`);
     assert.equal(r.ok, false);
-    assert.match(r.violations.join(" "), /issuer_mode|forced|untagged|literal/i);
+    assert.match(
+        r.violations.join(" "),
+        /issuer_mode|forced|untagged|literal/i,
+    );
 });
 
 test("FIX C: rejects a tag on a capped attribute (access_token_validity)", () => {
@@ -526,7 +529,10 @@ entries:
   - model: authentik_providers_oauth2.oauth2provider
     attrs: {name: x, access_token_validity: !KeyOf "60"}`);
     assert.equal(r.ok, false);
-    assert.match(r.violations.join(" "), /access_token_validity|forced|capped|untagged|literal/i);
+    assert.match(
+        r.violations.join(" "),
+        /access_token_validity|forced|capped|untagged|literal/i,
+    );
 });
 
 test("FIX C: a plain literal sub_mode still passes (happy path preserved)", () => {

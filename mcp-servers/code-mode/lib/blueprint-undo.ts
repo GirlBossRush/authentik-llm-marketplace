@@ -49,7 +49,10 @@ export interface UndoSnapshot {
  * matching against the returned results.
  */
 const MODEL_LIST: Readonly<
-    Record<string, { path: string; filterParams: readonly string[]; wideFetch?: boolean }>
+    Record<
+        string,
+        { path: string; filterParams: readonly string[]; wideFetch?: boolean }
+    >
 > = {
     "authentik_core.application": {
         path: "/core/applications/",
@@ -123,7 +126,10 @@ async function findLiveObject(
     if (res.status !== 200) return null;
 
     const results = extractResults(res.data);
-    return results.find((obj) => matchesIdentifiers(obj, entry.identifiers)) ?? null;
+    return (
+        results.find((obj) => matchesIdentifiers(obj, entry.identifiers)) ??
+        null
+    );
 }
 
 /** Render an identifiers map as a stable, readable string for a note. */

@@ -175,7 +175,12 @@ test("only fields the blueprint touches are restored (current values), not the w
             status: 200,
             data: {
                 results: [
-                    { slug: "app", name: "Old", pk: "uuid-1", extra: "leave-me" },
+                    {
+                        slug: "app",
+                        name: "Old",
+                        pk: "uuid-1",
+                        extra: "leave-me",
+                    },
                 ],
             },
         }),

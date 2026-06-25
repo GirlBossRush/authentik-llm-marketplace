@@ -43,7 +43,11 @@ export function createTools({ spec, config }: CreateToolsDeps) {
     // Propose-only: prepare runs the read-only pipeline (validate + diff + undo
     // + flags + apply command). The MCP never holds a write/apply credential, so
     // the diff/undo reads go through a read-only ak (allowWrites: false).
-    const prepare = ({ content }: { content: string }): Promise<PrepareResult> =>
+    const prepare = ({
+        content,
+    }: {
+        content: string;
+    }): Promise<PrepareResult> =>
         prepareApply(content, createAk(config, { allowWrites: false }));
 
     return { search, execute, validate, prepare };

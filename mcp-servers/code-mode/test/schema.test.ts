@@ -29,7 +29,7 @@ test("searchOperations matches by summary/tag/path and returns slices", () => {
     assert.ok(hit);
     assert.equal(hit.method, "POST");
     assert.equal(hit.path, "/stages/captcha/");
-    assert.equal(hit.operationId, "stages_captcha_create");
+    assert.equal(hit.operationID, "stages_captcha_create");
     const body = hit.requestBody as OpenAPIV3.RequestBodyObject;
     const schema = body.content["application/json"]
         ?.schema as OpenAPIV3.SchemaObject;

@@ -87,7 +87,11 @@ test("multiple changed fields are all reported in changedFields", async () => {
             status: 200,
             data: {
                 results: [
-                    { slug: "app", name: "Old Name", meta_launch_url: "https://old" },
+                    {
+                        slug: "app",
+                        name: "Old Name",
+                        meta_launch_url: "https://old",
+                    },
                 ],
             },
         }),
@@ -115,7 +119,12 @@ test("only attrs present in the blueprint entry are compared", async () => {
             status: 200,
             data: {
                 results: [
-                    { slug: "app", name: "Same", pk: "abc", extra: "ignore-me" },
+                    {
+                        slug: "app",
+                        name: "Same",
+                        pk: "abc",
+                        extra: "ignore-me",
+                    },
                 ],
             },
         }),
@@ -138,7 +147,11 @@ test("a provider entry resolves to its providers endpoint and matches by name", 
             requestedPath = path;
             return {
                 status: 200,
-                data: { results: [{ name: "my-oauth", client_type: "confidential" }] },
+                data: {
+                    results: [
+                        { name: "my-oauth", client_type: "confidential" },
+                    ],
+                },
             };
         },
     };

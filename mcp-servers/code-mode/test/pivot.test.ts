@@ -23,7 +23,7 @@ test("PIVOT: discover an endpoint, read data, then validate a proposed blueprint
     // 1. The agent discovers the endpoint.
     const { operations } = tools.search({ query: "create captcha stage" });
     assert.ok(
-        operations.some((o) => o.operationId === "stages_captcha_create"),
+        operations.some((o) => o.operationID === "stages_captcha_create"),
     );
 
     // 2. The agent proposes a blueprint; the validator rejects a non-allow-listed model.
@@ -37,7 +37,11 @@ entries:
     const badResult = tools.validate({ content: badBlueprint });
     assert.equal(badResult.ok, false);
     // v2: model is rejected as not in the allow-list (not the old "denied model" message)
-    assert.ok(badResult.violations.some((v) => v.includes("allow-list") || v.includes("not permitted")));
+    assert.ok(
+        badResult.violations.some(
+            (v) => v.includes("allow-list") || v.includes("not permitted"),
+        ),
+    );
 
     // 3. A clean blueprint (allowed model) passes.
     const goodBlueprint = `

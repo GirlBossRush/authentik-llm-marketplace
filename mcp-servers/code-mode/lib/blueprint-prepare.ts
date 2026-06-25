@@ -25,7 +25,11 @@
 import { parse } from "yaml";
 
 import { validateBlueprint, type FlagItem } from "#blueprint-validate";
-import { computeDiff, type BlueprintDiff, type ParsedEntry } from "#blueprint-diff";
+import {
+    computeDiff,
+    type BlueprintDiff,
+    type ParsedEntry,
+} from "#blueprint-diff";
 import { buildUndoSnapshot, type UndoSnapshot } from "#blueprint-undo";
 import { isDestructiveEntry } from "#blueprint-policy";
 import type { Ak } from "#client";
@@ -87,23 +91,30 @@ const DESTRUCTIVE_NOTICE =
 function toParsedEntry(raw: unknown): ParsedEntry & { state?: string } {
     const obj = (raw ?? {}) as Record<string, unknown>;
 
-    const model = typeof obj["model"] === "string" ? obj["model"] : "";
+    const model = typeof obj.model === "string" ? obj.model : "";
 
-    const rawIds = obj["identifiers"];
+    const rawIDs = obj.identifiers;
     const identifiers =
-        rawIds != null && typeof rawIds === "object" && !Array.isArray(rawIds)
-            ? (rawIds as Record<string, unknown>)
+        rawIDs != null && typeof rawIDs === "object" && !Array.isArray(rawIDs)
+            ? (rawIDs as Record<string, unknown>)
             : {};
 
-    const rawAttrs = obj["attrs"];
+    const rawAttrs = obj.attrs;
     const attrs =
-        rawAttrs != null && typeof rawAttrs === "object" && !Array.isArray(rawAttrs)
+        rawAttrs != null &&
+        typeof rawAttrs === "object" &&
+        !Array.isArray(rawAttrs)
             ? (rawAttrs as Record<string, unknown>)
             : {};
 
-    const state = typeof obj["state"] === "string" ? obj["state"] : undefined;
+    const state = typeof obj.state === "string" ? obj.state : undefined;
 
-    return { model, identifiers, attrs, ...(state !== undefined ? { state } : {}) };
+    return {
+        model,
+        identifiers,
+        attrs,
+        ...(state !== undefined ? { state } : {}),
+    };
 }
 
 /**
@@ -114,7 +125,10 @@ function toParsedEntry(raw: unknown): ParsedEntry & { state?: string } {
  * snapshot, flags destructive entries, and returns the apply command and the
  * honesty notice. Never applies the blueprint.
  */
-export async function prepareApply(content: string, ak: Ak): Promise<PrepareResult> {
+export async function prepareApply(
+    content: string,
+    ak: Ak,
+): Promise<PrepareResult> {
     // --- Validate FIRST: never prepare an invalid thing. ---
     const validation = validateBlueprint(content);
     if (!validation.ok) {
@@ -140,7 +154,9 @@ export async function prepareApply(content: string, ak: Ak): Promise<PrepareResu
     const undo = await buildUndoSnapshot(entries, ak);
 
     // A change is destructive if ANY entry deletes a model or touches crypto.
-    const destructive = entries.some((e) => isDestructiveEntry(e.model, e.state));
+    const destructive = entries.some((e) =>
+        isDestructiveEntry(e.model, e.state),
+    );
 
     // A destructive change withholds the smooth apply command and steers the
     // operator to the manual host-CLI path; a safe change offers the one-liner.
