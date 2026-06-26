@@ -2,8 +2,8 @@
 name: events-monitoring
 description: >
     Get alerted when something happens, or find what already did. Use when someone
-    wants an email or webhook on failed logins, a new admin, or a config change — or
-    wants to look up what happened in the audit log: recent logins and failures, who
+    wants an email or webhook on failed logins, a new admin, or a config change. Or to look up
+    what happened in the audit log: recent logins and failures, who
     changed a setting, when a user was created. Covers the event log and its AKQL
     search, plus notification rules and transports. Diagnosing *why* something is
     broken lives in troubleshooting; the event-matcher policy internals in policies-rbac.

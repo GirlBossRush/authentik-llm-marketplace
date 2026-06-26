@@ -97,6 +97,6 @@ network).
 - **[authentik]** Bind a policy to the **authenticator_validate** stage binding so it
   evaluates per login; pair with **authenticators-mfa** for the stage itself.
 
-**Gotchas:** policies on a stage binding evaluate when the user reaches them — enable
+**Gotchas:** policies on a stage binding evaluate when the user reaches them. Enable
 **Evaluate when flow is planned** if you need the decision upfront.
 **Verify:** MFA prompts only when the condition is true.

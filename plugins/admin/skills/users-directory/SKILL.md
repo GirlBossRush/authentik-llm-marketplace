@@ -15,8 +15,8 @@ description: >
 
 This skill manages the people in authentik: user accounts, the groups that organize
 them, the roles assigned to them, and the invitations that let new users enroll. It
-covers the lifecycle and data of those records — creating, editing, deactivating, and
-inspecting them — as the foundation that policies and flows act on.
+covers the lifecycle and data of those records (creating, editing, deactivating, and
+inspecting them) as the foundation that policies and flows act on.
 
 ## When to invoke
 
@@ -78,7 +78,7 @@ keys must match the flow's prompt-stage field keys** or nothing pre-fills; a
       **Roles**); add people from the group's **Users** tab or a user's **Groups** tab.
 2. **[docs]** `<docs>` users-sources/groups.
 
-**Gotchas:** **`is_superuser` cascades to every child group** — never set it on a broad
+**Gotchas:** **`is_superuser` cascades to every child group**, so never set it on a broad
 parent; roles **inherit from parent groups** (check the **All Roles** tab); since
 2025.2, toggling superuser needs its own permission.
 **Verify:** a member picks up the group's app bindings and roles.
@@ -94,7 +94,7 @@ parent; roles **inherit from parent groups** (check the **All Roles** tab); sinc
     - _Hands-off:_ code-mode can read existing accounts/tokens to confirm scope.
 2. **[docs]** `<docs>` sys-mgmt/service-accounts.
 
-**Gotchas:** the generated **password/token is shown once** at creation — capture it; a
+**Gotchas:** the generated **password/token is shown once** at creation, so capture it; a
 service account **can't use the browser UI** (non-interactive only); prefer expiring
 tokens (authentik auto-rotates them) and scope the account's permissions.
 **Verify:** the token authenticates an API call.

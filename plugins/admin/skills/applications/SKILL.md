@@ -2,11 +2,11 @@
 name: applications
 description: >
     Connect a specific named app or service to authentik so its users sign in
-    with their authentik account (SSO) — "integrate Grafana", "put Nextcloud
-    behind SSO", "set up GitLab login", "add Proxmox to authentik". This is the
-    walkthrough engine: it finds the service's integration guide and drives both
-    sides — the authentik Application/Provider and the settings to paste on the
-    vendor — so the user never juggles tabs. Also owns the Application object
+    with their authentik account (SSO): "integrate Grafana", "put Nextcloud
+    behind SSO", "set up GitLab login", "add Proxmox to authentik". It finds the
+    service's integration guide and walks through both sides (the authentik
+    Application/Provider and the settings to paste on the vendor) so the user
+    never juggles tabs. Also owns the Application object
     itself: launch URL, icon, provider binding, who may launch it, and application
     entitlements. Protocol details live in providers; external login *into*
     authentik lives in sources.
@@ -19,9 +19,9 @@ description: >
 An Application is the object a user sees on their **My applications** page. It ties
 a Provider (the protocol) to who is allowed in and how it is presented (name, icon,
 launch URL). authentik also publishes a per-service integration guide for hundreds
-of named apps. This skill is the single pane of glass for connecting one: it reads
+of named apps. This skill connects one of them end to end: it reads
 the guide, drives the authentik side, and tells the user exactly what to set on the
-vendor side — collapsing the three-tab dance into one flow.
+vendor side.
 
 ## When to invoke
 
@@ -52,7 +52,7 @@ authentik changes between releases — prefer live sources over memory:
 
 Each step is tagged by **where it happens**: `[authentik]` in the instance,
 `[vendor]` on the third-party app, `[docs]` in the integration guide. Every
-`[authentik]` step gives both paths — the hands-off code-mode propose, and the
+`[authentik]` step gives both paths: the hands-off code-mode propose, and the
 click-by-click admin UI. Narrate it as one flow so the user never switches tabs.
 
 ### Let my team log into <named service> with their authentik accounts
@@ -63,7 +63,7 @@ password and hands the app the user's identity, and where supported their role.
 1. **[docs]** Resolve the integration guide: fetch `<integrations>/llms.txt`, find
    the named service, fetch its `.md`. Every guide is laid out as _Preparation_
    (placeholders like `app.company` / `authentik.company`), _authentik
-   configuration_, and _<service> configuration_ — drive the first, dictate the second.
+   configuration_, and _<service> configuration_. Drive the first, dictate the second.
 2. **[authentik]** Create the Application + Provider pair:
     - _Hands-off:_ code-mode proposes an `authentik_core.application` + provider
       Blueprint (`validate_blueprint` → `prepare_apply`); run the printed
@@ -72,7 +72,7 @@ password and hands the app the user's identity, and where supported their role.
       type the guide names (usually **OAuth2/OpenID Connect** or **SAML**); set the
       **Redirect URI** to the app's exact callback; pick a **Signing Key**; capture
       the **Client ID** / **Client Secret**.
-3. **[vendor]** On the app, paste what the guide's _<service> configuration_ lists —
+3. **[vendor]** On the app, paste what the guide's _<service> configuration_ lists:
    client ID/secret and authentik's authorize/token/userinfo URLs (OIDC), or the
    metadata/ACS URL (SAML).
 4. **[authentik]** _(optional)_ Add **Application entitlements** to map authentik

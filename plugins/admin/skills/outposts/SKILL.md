@@ -1,9 +1,9 @@
 ---
 name: outposts
 description: >
-    Run the component that actually guards a proxied app, an LDAP or RADIUS endpoint,
+    Run the component that guards a proxied app, an LDAP or RADIUS endpoint,
     or browser-based remote access. Covers the embedded outpost and external outposts
-    for Proxy (forward-auth), LDAP, RADIUS, and Remote Access (RAC) — Docker and
+    for Proxy (forward-auth), LDAP, RADIUS, and Remote Access (RAC), plus Docker and
     Kubernetes deployment, the outpost token and authentik_host connection, and the
     reverse-proxy / forward-auth wiring. Use when a proxy, LDAP, or RADIUS provider
     needs somewhere to run, or an outpost shows unhealthy. The provider object itself
@@ -18,7 +18,7 @@ Some providers (Proxy, LDAP, RADIUS, RAC) need a runtime that sits in the traffi
 rather than living inside the authentik server. That runtime is an Outpost. This skill
 chooses between the embedded and external outpost, deploys it on Docker or Kubernetes,
 connects it back to authentik, and wires the surrounding reverse proxy or forward-auth
-so the provider actually serves traffic.
+so the provider serves traffic.
 
 ## When to invoke
 
@@ -64,7 +64,7 @@ the server/cluster running the outpost, `[docs]` in the live docs.
    or a Traefik `forwardauth` middleware.
 4. **[docs]** `<docs>` add-secure-apps/outposts, and providers/proxy for nginx/Traefik/Caddy examples.
 
-**Gotchas:** everything under `/outpost.goauthentik.io` must be reachable — test
+**Gotchas:** everything under `/outpost.goauthentik.io` must be reachable: test
 `curl -v https://app.company/outpost.goauthentik.io/ping`, expecting **HTTP 204**;
 `authentik_host` must be a **full URL with scheme** (not a bare hostname or IP); without
 the proxy auth directive, authentication is bypassed or loops.
@@ -72,10 +72,10 @@ the proxy auth directive, authentication is bypassed or loops.
 
 ### Embedded vs external outpost
 
-| Use                           | When                                                                                            |
-| ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Embedded**                  | Simplest — runs inside the authentik server; fine when authentik already sits behind your proxy |
-| **External** (managed/manual) | Independent scaling or lifecycle, or an outpost in a DMZ separate from the core network         |
+| Use                           | When                                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Embedded**                  | Simplest: runs inside the authentik server; fine when authentik already sits behind your proxy |
+| **External** (managed/manual) | Independent scaling or lifecycle, or an outpost in a DMZ separate from the core network        |
 
 ### Forward-auth returns 401 or loops
 

@@ -1,8 +1,8 @@
 ---
 name: providers
 description: >
-    Make an app trust authentik for login (SSO) — sign into Grafana, Nextcloud,
-    GitLab and the like with an authentik account — or expose authentik over LDAP or
+    Make an app trust authentik for login (SSO) so users sign into Grafana, Nextcloud,
+    GitLab and the like with an authentik account, expose authentik over LDAP or
     RADIUS, protect an app that has no login of its own via forward-auth, or push
     users out to Google Workspace or Microsoft Entra. Covers OAuth2/OIDC, SAML, LDAP,
     RADIUS, Proxy, SCIM, RAC, and the property mappings that shape their claims. Use
@@ -80,7 +80,7 @@ service, start from the **applications** walkthrough; come here for the protocol
 
 **Gotchas:** refresh tokens need the **`offline_access` scope added explicitly** (since
 2024.2); the app slug can't be a reserved word (`authorize`, `token`, `userinfo`, …);
-since 2025.10 `email_verified` defaults to false — add a custom mapping if the app
+since 2025.10 `email_verified` defaults to false, so add a custom mapping if the app
 requires true.
 **Verify:** the app's "log in with authentik" round-trips and returns the expected claims.
 
@@ -97,7 +97,7 @@ requires true.
 3. **[docs]** `<docs>` add-secure-apps/providers/saml.
 
 **Gotchas:** the **ACS URL and EntityID must match the app's values exactly** (an extra
-slash fails silently); **don't use email as the NameID** (changing email breaks SSO —
+slash fails silently); **don't use email as the NameID** (changing email breaks SSO;
 use a persistent identifier); clock skew between IdP and app invalidates assertions.
 **Verify:** SP-initiated login from the app lands authenticated.
 

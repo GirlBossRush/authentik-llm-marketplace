@@ -1,7 +1,7 @@
 ---
 name: operations
 description: >
-    Keep the authentik instance itself running — check the version and upgrade safely,
+    Keep the authentik instance itself running: check the version and upgrade safely,
     get back in when the admin account is locked out, add or rotate a certificate,
     brand the login page, and back up and restore. Covers instance lifecycle,
     recovery, certificates, Brands, global settings, and blueprints. Use for
@@ -62,7 +62,7 @@ the server/cluster (these need shell access, not the UI), `[docs]` in the live d
    automatically on start).
 4. **[docs]** `<docs>` install-config/upgrade and the release notes.
 
-**Gotchas:** there is **no downgrade** — if a migration fails, restore the backup; don't
+**Gotchas:** there is **no downgrade**, so if a migration fails, restore the backup; don't
 skip major versions (go 2025.2 → 2025.4 → 2025.6); server, worker, and all outposts must
 run the **same version**.
 **Verify:** Overview shows the new version and login still works.
@@ -77,7 +77,7 @@ run the **same version**.
     - The arguments are minutes and username.
 2. **[docs]** `<docs>` troubleshooting/login.
 
-**Gotchas:** the link is **sensitive** — anyone holding it gets admin; it expires (10
+**Gotchas:** the link is **sensitive**: anyone holding it gets admin; it expires (10
 minutes above); substitute the real username for `akadmin`.
 **Verify:** the link logs you in as admin.
 
@@ -93,8 +93,8 @@ minutes above); substitute the real username for `akadmin`.
 2. **[docs]** `<docs>` sys-mgmt/certificates.
 
 **Gotchas:** re-importing the same key **updates** the cert (no duplicate); the default
-self-signed cert **expires after 1 year** — set a rotation reminder for SAML apps (Slack
-actually checks expiry); reverse proxies and CDNs may cache the old cert.
+self-signed cert **expires after 1 year**, so set a rotation reminder for SAML apps (Slack
+checks expiry); reverse proxies and CDNs may cache the old cert.
 **Verify:** the provider or brand serves the new cert.
 
 ### Brand the login page
@@ -106,8 +106,8 @@ actually checks expiry); reverse proxies and CDNs may cache the old cert.
    **Custom CSS**; set **Domain matching** or mark it the default brand.
 2. **[docs]** `<docs>` sys-mgmt/brands and custom-css.
 
-**Gotchas:** if no brand matches the domain, authentik falls back to the **default brand**
-— make sure one is the default; **Custom CSS** should use CSS variables and `::part()`
+**Gotchas:** if no brand matches the domain, authentik falls back to the **default brand**,
+so make sure one is the default; **Custom CSS** should use CSS variables and `::part()`
 selectors (direct element selectors break on upgrades) and is CDN-cached (test in
 incognito).
 **Verify:** the branded login page renders for the domain.
@@ -123,7 +123,7 @@ incognito).
    then start authentik.
 3. **[docs]** `<docs>` sys-mgmt/ops/backup-restore.
 
-**Gotchas:** the **secret key is as critical as the database** — without the original,
+**Gotchas:** the **secret key is as critical as the database**; without the original,
 encrypted data is unrecoverable; store backups offsite; `/data` only matters if you're
 not on S3.
 **Verify:** a restore on a scratch instance comes up and lets you log in.

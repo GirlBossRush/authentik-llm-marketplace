@@ -1,7 +1,7 @@
 ---
 name: authenticators-mfa
 description: >
-    Turn on multi-factor authentication — require a second factor or passkey at
+    Turn on multi-factor authentication: require a second factor or passkey at
     login, and let users enrol a phone authenticator or security key. Covers TOTP
     apps, WebAuthn and passkeys (including hardware keys like YubiKey), the authentik
     push authenticator, Duo, SMS, and static recovery codes, plus the authenticator
@@ -17,7 +17,7 @@ description: >
 authentik delivers MFA through authenticator stages (which enrol a device) and
 authenticator validation stages (which require one at login). This skill picks the
 right device types, enrols them in the correct flow, and enforces them, so that
-"users must use a second factor" actually holds for the right people on the right
+"users must use a second factor" holds for the right people on the right
 applications.
 
 ## When to invoke
@@ -66,9 +66,9 @@ walked through enrolling it.
    webauthn setup stages.
 
 **Gotchas:** **Not configured action = Deny with no Configuration stages locks out
-everyone without a device** — use **Configure** to force enrolment instead; **Skip**
+everyone without a device**, so use **Configure** to force enrolment instead; **Skip**
 (the default) lets un-enrolled users bypass MFA entirely; pick the **device classes**
-you actually accept.
+you accept.
 **Verify:** a user with no device is forced to enrol, then prompted on next login.
 
 ### Require MFA only for specific apps
@@ -79,7 +79,7 @@ you actually accept.
   flow) so it runs only for that app — bind in **Applications → [app] → Bindings**.
   Hand the binding mechanics to **policies-rbac**.
 
-**Gotchas:** app-scoped vs global — make sure the validation isn't already forced in
+**Gotchas:** app-scoped vs global: make sure the validation isn't already forced in
 the shared authentication flow.
 **Verify:** the gated app prompts for MFA; others don't.
 

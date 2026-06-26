@@ -47,7 +47,7 @@ authentik changes between releases — prefer live sources over memory:
 ## Common workflows
 
 Each step is tagged by **where it happens**: `[authentik]` in the instance, `[docs]`
-in the live docs. Every `[authentik]` step gives both paths — the hands-off code-mode
+in the live docs. Every `[authentik]` step gives both paths: the hands-off code-mode
 propose, and the click-by-click admin UI.
 
 ### Build a self-service signup (enrollment) flow
@@ -64,7 +64,7 @@ propose, and the click-by-click admin UI.
 2. **[authentik]** Link it so users can reach it: **Flows → default-authentication-flow
    → Stage Bindings** → edit **default-authentication-identification** → set the
    **Enrollment flow** field to your flow.
-3. **[docs]** `<docs>` flows-stages/flow/examples for the canonical chains.
+3. **[docs]** `<docs>` flows-stages/flow/examples for ready-made chains.
 
 **Gotchas:** without a **user_write** stage the collected data is never saved; **User
 creation mode = never** means no account is ever made; if the **Enrollment flow** field
@@ -80,8 +80,8 @@ password.
    **identification → email** (sends the tokenized link) **→ prompt** (new password) **→
    user_write**. code-mode can propose this, or import
    `flows-recovery-email-mfa-verification.yaml`.
-2. **[authentik]** Make sure email actually sends — the email stage uses the global
-   SMTP config: **System → Settings** (or a per-stage override). No transport, no link.
+2. **[authentik]** Make sure email actually sends. The email stage uses the global
+   SMTP config: **System → Settings** (or a per-stage override).
 3. **[authentik]** Set it as the default: **System → Brands → [brand] → Default flows →
    Recovery flow**, and/or link it from the identification stage's **Recovery flow**
    field.

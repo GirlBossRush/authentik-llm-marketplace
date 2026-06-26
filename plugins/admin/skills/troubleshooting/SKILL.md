@@ -4,7 +4,7 @@ description: >
     Diagnose a broken or degraded authentik instance from the symptom. Use when "I
     can't log in", "the app rejects the token / invalid issuer", "it redirects in a
     loop after login", "emails aren't sending", "forward-auth returns 401", or "a CSRF
-    error when I save" — plus slow performance, stuck background tasks, and worker
+    error when I save", plus slow performance, stuck background tasks, and worker
     health. Works symptom → first check → likely cause → the skill that owns the fix.
     Routine audit-log reading lives in events-monitoring; upgrades and admin recovery
     in operations.
@@ -16,8 +16,8 @@ description: >
 
 When authentik misbehaves, the cause is usually in a place the admin hasn't looked: the
 worker, a failed system task, SMTP settings, a provider mismatch, or a reverse proxy
-header. This skill works from symptom to evidence to root cause — checking system tasks,
-logs, and component health — instead of guessing at fixes, then hands off to the skill
+header. This skill works from symptom to evidence to root cause (checking system tasks,
+logs, and component health) instead of guessing at fixes, then hands off to the skill
 that owns the repair.
 
 ## When to invoke

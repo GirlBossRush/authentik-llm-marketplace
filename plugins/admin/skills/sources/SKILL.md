@@ -2,8 +2,8 @@
 name: sources
 description: >
     Let people log in to authentik with an account they already have, or pull users
-    in from a directory. Covers social login — "add a Log in with Google / Microsoft
-    / GitHub / Apple button" — plus SAML/OIDC federation, LDAP and Active Directory
+    in from a directory. Covers social login ("add a Log in with Google / Microsoft
+    / GitHub / Apple button") plus SAML/OIDC federation, LDAP and Active Directory
     directory sync, Kerberos, inbound SCIM, and Plex. Use when someone wants "log in
     with X" on the authentik login page, or wants to import users from a directory.
     For an app that should *trust* authentik for login, use providers; the login
@@ -50,7 +50,7 @@ authentik changes between releases — prefer live sources over memory:
 
 Each step is tagged by **where it happens**: `[authentik]` in the instance,
 `[vendor]` on the upstream provider, `[docs]` in the live docs. Every `[authentik]`
-step gives both paths — the hands-off code-mode propose, and the click-by-click admin
+step gives both paths: the hands-off code-mode propose, and the click-by-click admin
 UI. Narrate it as one flow.
 
 ### Add a "Log in with Google / Microsoft / GitHub" button
