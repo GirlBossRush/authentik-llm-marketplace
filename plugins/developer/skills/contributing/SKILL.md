@@ -38,7 +38,7 @@ passes, `[pr]` act on GitHub, `[docs]` read the contributing guide.
 **Result:** a pull request that follows the conventions and passes CI.
 
 1. **[shell]** Work on a feature branch, never `main`: `git checkout -b feature/<short-name>`.
-2. **[shell]** Name commits and the PR title `<package>: <verb> <description>` — for example
+2. **[shell]** Name commits and the PR title `<package>: <verb> <description>`, for example
    `providers/oauth2: fix request parsing` or `web: add export button`.
 3. **[verify]** Run the gate locally before pushing: `make all` (lint, build, test); if you
    touched models or the API, also `make gen` and commit the updated `schema.yml` and client
@@ -47,8 +47,8 @@ passes, `[pr]` act on GitHub, `[docs]` read the contributing guide.
    linked issues, using `closes #N` to auto-close).
 5. **[docs]** `website/docs/developer-docs/contributing.md`.
 
-**Gotchas:** a PR from `main` is rejected — always use a feature branch; there is **no CLA**
-(authentik is GPL-3.0), so contributions are simply under that license; the required checks
+**Gotchas:** a PR from `main` is rejected, so always use a feature branch; there is **no CLA**
+(authentik is GPL-3.0), so contributions are under that license; the required checks
 are the `ci-main` and `ci-web` jobs (lint, migrations, unit, integration, e2e, web
 build/test), most of which `make all` covers locally.
 **Verify:** the PR's CI is green and the title matches the convention.

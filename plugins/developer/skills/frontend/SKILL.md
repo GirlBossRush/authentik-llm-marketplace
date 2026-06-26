@@ -45,7 +45,7 @@ root unless noted.
    it up.
 4. **[docs]** `website/docs/developer-docs/setup/frontend-dev-environment.mdx`.
 
-**Gotchas:** the frontend needs a backend at `:9000` — run `make run` alongside it; hot
+**Gotchas:** the frontend needs a backend at `:9000`, so run `make run` alongside it; hot
 reload needs `AUTHENTIK_DEBUG=true` (on by default in dev); built assets land in
 `web/dist/` and must exist before the backend can serve the UI.
 **Verify:** a visible change to a component shows up without a manual rebuild.

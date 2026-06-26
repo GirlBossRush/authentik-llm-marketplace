@@ -1,7 +1,7 @@
 ---
 name: testing
 description: >
-    Run authentik's tests — just the ones touching your change, a single test while
+    Run authentik's tests: just the ones touching your change, a single test while
     iterating, the full backend suite, the Selenium e2e suite, or the web tests. Use when
     a contributor wants to run the Python or web tests, narrow a run to one test, watch an
     e2e run in a browser, or work out why a suite won't start. Linting and type checks live
@@ -62,7 +62,7 @@ order (`pytest-randomly`), so pass `--randomly-seed=0` to make a debugging run d
    (or `tests/e2e/` for all).
 3. **[verify]** Watch it live at `http://localhost:7900` (password `secret`).
 
-**Gotchas:** e2e is slow because it drives a real browser — run a specific test during dev,
+**Gotchas:** e2e is slow because it drives a real browser. Run a specific test during dev,
 not the whole suite; the e2e services must be up first.
 
 ### Run the web tests

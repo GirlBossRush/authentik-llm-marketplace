@@ -82,17 +82,17 @@ Skills are contextual and auto-loaded based on your conversation. When a request
 
 ### ak-dev
 
-| Skill             | Description                                                       |
-| ----------------- | ----------------------------------------------------------------- |
-| `dev-environment` | Set up a local development stack from a fresh checkout            |
-| `backend`         | Run the Django backend and worker; create and apply migrations    |
-| `frontend`        | Run and build the web frontend                                    |
-| `docs`            | Run and build the documentation site locally                      |
-| `testing`         | Run the Python unit, e2e, and web test suites                     |
-| `linting`         | Run linters, formatters, and type checkers across backend and web |
-| `contributing`    | File a GitHub issue and prepare a pull request                    |
-| `community`       | Find the right community channel and ask an effective question    |
-| `de-slop`         | Removes AI-slop tells from human-facing text (issues, PRs, docs)  |
+| Skill             | Description                                                                    |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `dev-environment` | From a fresh clone to a running stack you can log into, or reset a broken one  |
+| `backend`         | Run the backend + worker, and take a model change to a committed migration     |
+| `frontend`        | Run the web UI with hot reload against your local backend, and build it        |
+| `docs`            | Preview a docs change with live reload, and build/check it before a PR         |
+| `testing`         | Run just your change, a single test, the e2e suite, or the web tests           |
+| `linting`         | Fix everything before you push, and reproduce a failing CI lint/type check     |
+| `contributing`    | Take a branch to a merge-ready PR: conventions, CI, and the (no-)CLA situation |
+| `community`       | Send a question to the right venue (Issues / Discussions / Discord / security) |
+| `de-slop`         | Removes AI-slop tells from human-facing text (issues, PRs, docs)               |
 
 ## MCP servers
 

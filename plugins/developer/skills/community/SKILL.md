@@ -3,7 +3,7 @@ name: community
 description: >
     Send a question to the right authentik venue, and frame it so it gets answered. Use when
     someone has a usage question, a possible security issue, an idea to discuss, or isn't
-    sure whether something is a bug — and needs to know where it goes (GitHub Issues vs
+    sure whether something is a bug, and needs to know where it goes (GitHub Issues vs
     Discussions vs Discord vs a security disclosure) and what context to include. Filing the
     formal issue or PR itself lives in contributing.
 ---
@@ -41,6 +41,6 @@ Not this skill: filing a formal issue or pull request (contributing).
 Then frame it with context: your authentik version, what you tried, what you expected versus
 what you saw, and logs for anything broken.
 
-**Gotcha:** a security issue in a public tracker exposes users before there's a fix — always
+**Gotcha:** a security issue in a public tracker exposes users before there's a fix, so always
 use the project's private security disclosure (see `SECURITY.md` / the security policy), not
 a public issue or Discord.

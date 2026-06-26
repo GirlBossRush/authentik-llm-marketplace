@@ -38,7 +38,7 @@ Steps are tagged by what you're doing: `[shell]` run a command, `[edit]` change 
 
 **Result:** the API/web server and the worker running locally, restarting on edits.
 
-1. **[shell]** Start both: `make run` (runs `uv run ak allinone` — server and worker in
+1. **[shell]** Start both: `make run` (runs `uv run ak allinone`, server and worker in
    one process) on `http://localhost:9000`.
 2. **[shell]** For auto-restart on edits: `make run-watch` (needs `watchexec`; restarts on
    `.py` / `.rs` / `.go` changes).
@@ -53,7 +53,7 @@ Steps are tagged by what you're doing: `[shell]` run a command, `[edit]` change 
 commit.
 
 1. **[edit]** Change the model in `authentik/<app>/models.py`.
-2. **[shell]** Generate the migration: `uv run ak makemigrations <app>` (e.g. `core`) —
+2. **[shell]** Generate the migration: `uv run ak makemigrations <app>` (e.g. `core`);
    it writes `authentik/<app>/migrations/NNNN_*.py`.
 3. **[verify]** Read the generated file to confirm it matches your intent.
 4. **[shell]** Apply it: `make migrate`.
@@ -61,7 +61,7 @@ commit.
    `ak makemigrations --check`, which fails if a model change has no migration). Then
    commit the migration alongside the model change.
 
-**Gotchas:** CI blocks a PR whose models have no migration — run the `--check` before
+**Gotchas:** CI blocks a PR whose models have no migration, so run the `--check` before
 pushing; if two branches add the same migration number, rename one and re-run
 `makemigrations`; never edit an applied migration, add a new one instead.
 

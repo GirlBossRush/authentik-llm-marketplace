@@ -40,7 +40,7 @@ passes, `[docs]` read the CI definition. Commands run from the repo root unless 
    CI runs: ruff, `mypy --strict`, bandit, plus the Go and Rust linters).
 2. **[shell]** Web: `cd web/ && npm run lint && npm run prettier && npm run tsc && npm run lit-analyse`.
 
-**Gotchas:** run `make lint-fix` before `make lint` — the fixer changes code, then the
+**Gotchas:** run `make lint-fix` before `make lint`: the fixer changes code, then the
 checker verifies it; mypy is `--strict`, so new code must be fully typed (or carry a
 justified `# type: ignore`); the backend tools cover
 `authentik packages tests scripts lifecycle .github`.
@@ -56,7 +56,7 @@ justified `# type: ignore`); the backend tools cover
 - **[docs]** the lint jobs in `.github/workflows/ci-main.yml` and `ci-web.yml` list every
   tool.
 
-**Gotchas:** if you touched models or the API, CI also regenerates the schema and clients —
+**Gotchas:** if you touched models or the API, CI also regenerates the schema and clients, so
 run `make gen` and commit the updated `schema.yml` and client packages (the migration side
 is in backend).
 **Verify:** the local command reproduces, then clears, the CI failure.

@@ -55,5 +55,5 @@ v3 monorepo whose workspaces are `docs`, `api`, and `integrations`.
 2. **[shell]** Lint, format, and spellcheck: `make docs-lint-fix`.
 
 **Gotchas:** the build fails on broken internal links and MDX errors, so fix them before
-pushing; cspell may flag new terms — add legitimate ones to the dictionary.
+pushing; cspell may flag new terms, so add legitimate ones to the dictionary.
 **Verify:** both run clean; CI's docs job mirrors them.
