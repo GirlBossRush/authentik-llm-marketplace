@@ -40,9 +40,9 @@ worked, `[docs]` read the developer docs. Commands run from the repo root unless
 **Result:** authentik running locally at `http://localhost:9000` with an admin you can
 sign in as.
 
-1. **[shell]** Install the prerequisites: Python 3.14, `uv`, Node 24+, Go 1.26+, Docker
-    - Compose, plus the platform libraries (macOS: `libxmlsec1`, `libpq`, `krb5` via
-      Homebrew; Debian: the `krb5` / `xmlsec` / `postgresql-server-dev` packages).
+1. **[shell]** Install the prerequisites: Python 3.14, `uv`, Node 24+, Go 1.26+, Docker and
+   Docker Compose, plus the platform libraries (macOS: `libxmlsec1`, `libpq`, `krb5` via
+   Homebrew; Debian: the `krb5` / `xmlsec` / `postgresql-server-dev` packages).
 2. **[shell]** Bring up the supporting services and install dependencies:
     ```
     docker compose -f scripts/compose.yml up -d   # PostgreSQL and friends
