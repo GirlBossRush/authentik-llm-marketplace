@@ -65,20 +65,20 @@ Skills are contextual and auto-loaded based on your conversation. When a request
 
 ### ak-admin
 
-| Skill                | Description                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `concepts`           | Explains the object model (Application vs Provider, Flow vs Stage) and routes docs questions |
-| `applications`       | Application objects and the integration catalog for a specific service                       |
-| `providers`          | authentik as the IdP: SAML, OAuth2/OIDC, LDAP, RADIUS, Proxy, SCIM                           |
-| `sources`            | Login into authentik with external accounts and directory sync                               |
-| `flows-stages`       | Login, enrollment, and recovery flows and the stages bound to them                           |
-| `authenticators-mfa` | MFA and authenticator devices: TOTP, WebAuthn/passkeys, Duo, SMS                             |
-| `policies-rbac`      | Authorization policies, bindings, and role-based access control                              |
-| `users-directory`    | Users, groups, roles, and invitations                                                        |
-| `outposts`           | Deploying the Proxy, LDAP, RADIUS, and RAC outpost runtimes                                  |
-| `events-monitoring`  | Reading the audit log and configuring notifications                                          |
-| `troubleshooting`    | Diagnosing email, performance, and worker/task failures                                      |
-| `operations`         | Instance lifecycle: version, upgrades, admin recovery, certificates, brands                  |
+| Skill                | Description                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `concepts`           | Translate a plain-language goal into the right authentik objects; explains the object model          |
+| `applications`       | Connect a named app to authentik (SSO) end-to-end, and manage the Application object                 |
+| `providers`          | Make an app trust authentik for login: OAuth2/OIDC, SAML, LDAP, RADIUS, proxy, outbound provisioning |
+| `sources`            | Let users log in with Google/Microsoft/GitHub, or sync users in from Active Directory                |
+| `flows-stages`       | Change login/signup/recovery: enrollment, password reset, captcha, MFA placement                     |
+| `authenticators-mfa` | Turn on MFA: TOTP, WebAuthn/passkeys, Duo, SMS, and enforcing a second factor                        |
+| `policies-rbac`      | Control who can use an app or reach a step; policies, bindings, and RBAC                             |
+| `users-directory`    | Add or invite people, build groups, and issue service-account tokens                                 |
+| `outposts`           | Run the proxy/LDAP/RADIUS/RAC outpost and wire forward-auth                                          |
+| `events-monitoring`  | Alert on events (failed logins) and search the audit log                                             |
+| `troubleshooting`    | Diagnose from the symptom: can't log in, token rejected, redirect loop, email, forward-auth 401      |
+| `operations`         | Upgrade, recover a locked-out admin, rotate certs, brand the login page, back up and restore         |
 
 ### ak-dev
 
